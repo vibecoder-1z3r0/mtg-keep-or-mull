@@ -24,7 +24,9 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 
-dependencies = []
+dependencies = [
+    "pydantic>=2.0.0",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -100,6 +102,10 @@ warn_no_return = true
 strict_equality = true
 files = ["src", "tests"]
 
+[[tool.mypy.overrides]]
+module = "pydantic"
+ignore_missing_imports = true
+
 # Pylint configuration
 [tool.pylint.main]
 py-version = "3.10"
@@ -113,7 +119,12 @@ disable = [
     "missing-class-docstring",
     "missing-function-docstring",
     "too-few-public-methods",
+    "unnecessary-ellipsis",
+    "line-too-long",  # black handles line length
 ]
+
+[tool.pylint.imports]
+ignored-modules = ["pydantic"]
 
 [tool.pylint.format]
 max-line-length = 100
