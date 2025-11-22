@@ -43,6 +43,18 @@ dev = [
     "openapi-spec-validator>=0.7.0",  # For validating OpenAPI specs
     "schemathesis>=3.27.0",  # For contract testing against OpenAPI spec
 ]
+# Database backend dependencies (optional - install as needed)
+postgres = [
+    "psycopg2-binary>=2.9.0",
+]
+mysql = [
+    "mysql-connector-python>=8.0.0",
+]
+# Install all database backends
+databases = [
+    "psycopg2-binary>=2.9.0",
+    "mysql-connector-python>=8.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/vibecoder-1z3r0/mtg-keep-or-mull"
@@ -115,6 +127,12 @@ ignore_missing_imports = true
 module = ["fastapi", "fastapi.*", "pytest", "openapi_spec_validator", "openapi_spec_validator.*"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+
 # Pylint configuration
 [tool.pylint.main]
 py-version = "3.10"
@@ -132,6 +150,10 @@ disable = [
     "line-too-long",  # black handles line length
     "protected-access",  # tests need to access internal state
     "fixme",  # TODO comments are acceptable
+    "duplicate-code",  # acceptable in tests for setup/fixture code
+    "import-error",  # optional dependencies (pytest, psycopg2, mysql) may not be installed
+    "import-outside-toplevel",  # lazy imports for optional dependencies
+    "too-many-positional-arguments",  # database constructors need many parameters
 ]
 
 [tool.pylint.imports]

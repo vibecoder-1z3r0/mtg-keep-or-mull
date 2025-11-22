@@ -25,17 +25,64 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
 
-      - name: Check code formatting with black
-        run: black --check src/ tests/
+      - name: Run linters in parallel
+        run: |
+          # Run all linters in parallel for faster CI, capturing output separately
+          black --check src/ tests/ > black.log 2>&1 &
+          BLACK_PID=$!
 
-      - name: Lint with flake8
-        run: flake8 src/ tests/
+          flake8 src/ tests/ > flake8.log 2>&1 &
+          FLAKE8_PID=$!
 
-      - name: Lint with pylint
-        run: pylint src/ tests/
+          pylint src/ tests/ > pylint.log 2>&1 &
+          PYLINT_PID=$!
 
-      - name: Type check with mypy
-        run: mypy src/
+          mypy src/ > mypy.log 2>&1 &
+          MYPY_PID=$!
+
+          # Wait for all linters and collect exit codes
+          BLACK_EXIT=0
+          FLAKE8_EXIT=0
+          PYLINT_EXIT=0
+          MYPY_EXIT=0
+
+          wait $BLACK_PID || BLACK_EXIT=$?
+          wait $FLAKE8_PID || FLAKE8_EXIT=$?
+          wait $PYLINT_PID || PYLINT_EXIT=$?
+          wait $MYPY_PID || MYPY_EXIT=$?
+
+          # Display output from each linter
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "BLACK (exit code: $BLACK_EXIT)"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          cat black.log
+          echo ""
+
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "FLAKE8 (exit code: $FLAKE8_EXIT)"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          cat flake8.log
+          echo ""
+
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "PYLINT (exit code: $PYLINT_EXIT)"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          cat pylint.log
+          echo ""
+
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "MYPY (exit code: $MYPY_EXIT)"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          cat mypy.log
+          echo ""
+
+          # Exit with failure if any linter failed
+          if [ $BLACK_EXIT -ne 0 ] || [ $FLAKE8_EXIT -ne 0 ] || [ $PYLINT_EXIT -ne 0 ] || [ $MYPY_EXIT -ne 0 ]; then
+            echo "❌ One or more linters failed"
+            exit 1
+          else
+            echo "✅ All linters passed"
+          fi
 
   test:
     name: Test (Python ${{ matrix.python-version }})
