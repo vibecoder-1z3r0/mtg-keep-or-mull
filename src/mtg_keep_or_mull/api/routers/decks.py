@@ -48,6 +48,8 @@ def upload_deck(
             total_games=0,
             format=request.format,
             archetype=request.archetype,
+            colors=request.colors,
+            tags=request.tags,
         )
 
         # Save to datastore
@@ -62,6 +64,8 @@ def upload_deck(
             created_at=datetime.now(),
             format=request.format,
             archetype=request.archetype,
+            colors=request.colors,
+            tags=request.tags,
         )
 
     except Exception as e:
@@ -72,20 +76,26 @@ def upload_deck(
 def list_decks(
     format: Optional[str] = None,
     archetype: Optional[str] = None,
+    colors: Optional[str] = None,
+    tags: Optional[str] = None,
     datastore: DataStore = Depends(get_datastore),
 ) -> DeckListResponse:
-    """List all available decks, optionally filtered by format and/or archetype.
+    """List all available decks, optionally filtered by format, archetype, colors, and/or tags.
 
     Args:
-        format: Optional format filter (e.g., "Pauper", "Modern")
-        archetype: Optional archetype filter (e.g., "Aggro", "Control")
+        format: Optional format filter (e.g., "Pauper") - matches if value in deck's format list
+        archetype: Optional archetype filter (e.g., "Aggro") - matches if value in deck's archetype list
+        colors: Optional colors filter (e.g., "U", "Grixis") - matches if value in deck's colors list
+        tags: Optional tags filter (e.g., "burn") - matches if value in deck's tags list
         datastore: DataStore dependency
 
     Returns:
         DeckListResponse with list of matching decks
     """
     # Use filtered list if filters provided, otherwise list all
-    deck_ids = datastore.list_decks_filtered(format=format, archetype=archetype)
+    deck_ids = datastore.list_decks_filtered(
+        format=format, archetype=archetype, colors=colors, tags=tags
+    )
     decks: List[DeckResponse] = []
 
     for deck_id in deck_ids:
@@ -100,6 +110,8 @@ def list_decks(
                     created_at=datetime.now(),  # TODO: Store creation time in DeckData
                     format=deck_data.format,
                     archetype=deck_data.archetype,
+                    colors=deck_data.colors,
+                    tags=deck_data.tags,
                 )
             )
 
@@ -110,13 +122,17 @@ def list_decks(
 def get_random_deck(
     format: Optional[str] = None,
     archetype: Optional[str] = None,
+    colors: Optional[str] = None,
+    tags: Optional[str] = None,
     datastore: DataStore = Depends(get_datastore),
 ) -> DeckResponse:
-    """Get a random deck, optionally filtered by format and/or archetype.
+    """Get a random deck, optionally filtered by format, archetype, colors, and/or tags.
 
     Args:
-        format: Optional format filter (e.g., "Pauper", "Modern")
-        archetype: Optional archetype filter (e.g., "Aggro", "Control")
+        format: Optional format filter (e.g., "Pauper") - matches if value in deck's format list
+        archetype: Optional archetype filter (e.g., "Aggro") - matches if value in deck's archetype list
+        colors: Optional colors filter (e.g., "U", "Grixis") - matches if value in deck's colors list
+        tags: Optional tags filter (e.g., "burn") - matches if value in deck's tags list
         datastore: DataStore dependency
 
     Returns:
@@ -125,7 +141,9 @@ def get_random_deck(
     Raises:
         HTTPException: If no decks match the filters
     """
-    deck_data = datastore.get_random_deck(format=format, archetype=archetype)
+    deck_data = datastore.get_random_deck(
+        format=format, archetype=archetype, colors=colors, tags=tags
+    )
 
     if not deck_data:
         filter_msg = []
@@ -133,6 +151,10 @@ def get_random_deck(
             filter_msg.append(f"format={format}")
         if archetype:
             filter_msg.append(f"archetype={archetype}")
+        if colors:
+            filter_msg.append(f"colors={colors}")
+        if tags:
+            filter_msg.append(f"tags={tags}")
         filter_str = " and ".join(filter_msg) if filter_msg else "any criteria"
         raise HTTPException(
             status_code=404, detail=f"No decks available matching {filter_str}"
@@ -146,6 +168,8 @@ def get_random_deck(
         created_at=datetime.now(),
         format=deck_data.format,
         archetype=deck_data.archetype,
+        colors=deck_data.colors,
+        tags=deck_data.tags,
     )
 
 
@@ -175,6 +199,8 @@ def get_deck(deck_id: str, datastore: DataStore = Depends(get_datastore)) -> Dec
         created_at=datetime.now(),  # TODO: Store creation time in DeckData
         format=deck_data.format,
         archetype=deck_data.archetype,
+        colors=deck_data.colors,
+        tags=deck_data.tags,
     )
 
 

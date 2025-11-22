@@ -14,16 +14,20 @@ class DeckUploadRequest(BaseModel):
 
     deck_text: str = Field(..., description="MTGO-format deck list text")
     deck_name: str = Field("", description="Optional human-readable deck name")
-    format: str = Field("Unknown", description="MTG format (e.g., Pauper, Modern, Standard)")
-    archetype: str = Field("Unknown", description="Deck archetype (e.g., Aggro, Control, Combo)")
+    format: List[str] = Field(default_factory=list, description="MTG formats (e.g., Pauper, Modern, Standard)")
+    archetype: List[str] = Field(default_factory=list, description="Deck archetypes (e.g., Aggro, Control, Combo)")
+    colors: List[str] = Field(default_factory=list, description="Color identity (e.g., U, Grixis, Mono-Blue)")
+    tags: List[str] = Field(default_factory=list, description="Custom tags for categorization")
 
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
                 "deck_text": "4 Lightning Bolt\n20 Mountain\n\nSIDEBOARD:\n3 Pyroblast",
                 "deck_name": "Red Deck Wins",
-                "format": "Modern",
-                "archetype": "Aggro",
+                "format": ["Modern", "Pioneer"],
+                "archetype": ["Aggro", "Burn"],
+                "colors": ["R", "Mono-Red"],
+                "tags": ["burn", "budget"],
             }
         }
     )
@@ -37,8 +41,10 @@ class DeckResponse(BaseModel):
     main_deck_size: int = Field(..., description="Number of cards in main deck")
     sideboard_size: int = Field(..., description="Number of cards in sideboard")
     created_at: datetime = Field(..., description="When the deck was created")
-    format: str = Field("Unknown", description="MTG format (e.g., Pauper, Modern, Standard)")
-    archetype: str = Field("Unknown", description="Deck archetype (e.g., Aggro, Control, Combo)")
+    format: List[str] = Field(default_factory=list, description="MTG formats (e.g., Pauper, Modern, Standard)")
+    archetype: List[str] = Field(default_factory=list, description="Deck archetypes (e.g., Aggro, Control, Combo)")
+    colors: List[str] = Field(default_factory=list, description="Color identity (e.g., U, Grixis, Mono-Blue)")
+    tags: List[str] = Field(default_factory=list, description="Custom tags for categorization")
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -48,8 +54,10 @@ class DeckResponse(BaseModel):
                 "main_deck_size": 60,
                 "sideboard_size": 15,
                 "created_at": "2025-11-22T10:30:00",
-                "format": "Pauper",
-                "archetype": "Tempo",
+                "format": ["Pauper", "Modern", "Legacy"],
+                "archetype": ["Tempo", "Control"],
+                "colors": ["U", "Mono-Blue"],
+                "tags": ["delver", "permission", "cantrips"],
             }
         }
     )
