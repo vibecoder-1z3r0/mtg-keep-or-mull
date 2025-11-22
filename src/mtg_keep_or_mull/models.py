@@ -73,13 +73,21 @@ class DeckData(BaseModel):
         default_factory=list, description="Sideboard card names (0-15 cards)"
     )
     total_games: int = Field(default=0, ge=0, description="Total games played with this deck")
-    format: str = Field(
-        default="Unknown",
-        description="MTG format (e.g., Pauper, Modern, Standard, Legacy, Commander)",
+    format: List[str] = Field(
+        default_factory=list,
+        description="MTG formats (e.g., Pauper, Modern, Standard, Legacy, Commander)",
     )
-    archetype: str = Field(
-        default="Unknown",
-        description="Deck archetype (e.g., Aggro, Control, Combo, Tempo, Midrange)",
+    archetype: List[str] = Field(
+        default_factory=list,
+        description="Deck archetypes (e.g., Aggro, Control, Combo, Tempo, Midrange)",
+    )
+    colors: List[str] = Field(
+        default_factory=list,
+        description="Color identity (e.g., Grixis, U, B, R, Mono-Blue, UBR)",
+    )
+    tags: List[str] = Field(
+        default_factory=list,
+        description="Flexible tags for themes, strategies, and custom labels",
     )
 
     model_config = ConfigDict(
@@ -90,8 +98,10 @@ class DeckData(BaseModel):
                 "main_deck": ["Island", "Island", "Delver of Secrets", "Brainstorm"],
                 "sideboard": ["Hydroblast", "Annul"],
                 "total_games": 42,
-                "format": "Pauper",
-                "archetype": "Tempo",
+                "format": ["Pauper", "Modern", "Legacy", "Vintage"],
+                "archetype": ["Tempo", "Control"],
+                "colors": ["U", "Mono-Blue"],
+                "tags": ["Delver", "permission", "cantrips"],
             }
         }
     )
