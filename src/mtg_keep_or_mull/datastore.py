@@ -94,6 +94,34 @@ class DataStore(Protocol):
         """
         ...
 
+    def list_decks_filtered(
+        self, format: Optional[str] = None, archetype: Optional[str] = None
+    ) -> List[str]:
+        """List deck IDs filtered by format and/or archetype.
+
+        Args:
+            format: Optional format filter (e.g., "Pauper", "Modern")
+            archetype: Optional archetype filter (e.g., "Aggro", "Control")
+
+        Returns:
+            List of deck_id strings matching the filters
+        """
+        ...
+
+    def get_random_deck(
+        self, format: Optional[str] = None, archetype: Optional[str] = None
+    ) -> Optional[DeckData]:
+        """Get a random deck, optionally filtered by format and/or archetype.
+
+        Args:
+            format: Optional format filter (e.g., "Pauper", "Modern")
+            archetype: Optional archetype filter (e.g., "Aggro", "Control")
+
+        Returns:
+            Random DeckData matching the filters, or None if no decks match
+        """
+        ...
+
 
 class MockDataStore:
     """In-memory implementation of DataStore for testing and MVP.
@@ -164,6 +192,44 @@ class MockDataStore:
     def get_all_decisions(self) -> List[HandDecisionData]:
         """Get all hand decisions across all decks."""
         return list(self._decisions)
+
+    def list_decks_filtered(
+        self, format: Optional[str] = None, archetype: Optional[str] = None
+    ) -> List[str]:
+        """List deck IDs filtered by format and/or archetype."""
+        deck_ids = []
+        for deck_id, deck in self._decks.items():
+            # If no filters provided, include all decks
+            if format is None and archetype is None:
+                deck_ids.append(deck_id)
+                continue
+
+            # Check format filter
+            if format is not None and deck.format != format:
+                continue
+
+            # Check archetype filter
+            if archetype is not None and deck.archetype != archetype:
+                continue
+
+            # Deck passed all filters
+            deck_ids.append(deck_id)
+
+        return deck_ids
+
+    def get_random_deck(
+        self, format: Optional[str] = None, archetype: Optional[str] = None
+    ) -> Optional[DeckData]:
+        """Get a random deck, optionally filtered by format and/or archetype."""
+        import random
+
+        matching_deck_ids = self.list_decks_filtered(format=format, archetype=archetype)
+
+        if not matching_deck_ids:
+            return None
+
+        random_deck_id = random.choice(matching_deck_ids)
+        return self._decks.get(random_deck_id)
 
 
 class JSONDataStore:
