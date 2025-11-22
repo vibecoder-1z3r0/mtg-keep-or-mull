@@ -204,9 +204,7 @@ def keep_hand(
             # Find the card in the hand
             matching_cards = [c for c in hand_cards if c.name == card_name]
             if not matching_cards:
-                raise HTTPException(
-                    status_code=400, detail=f"Card not in hand: {card_name}"
-                )
+                raise HTTPException(status_code=400, detail=f"Card not in hand: {card_name}")
             cards_to_bottom.append(matching_cards[0])
             # Remove from available cards to avoid duplicates
             hand_cards.remove(matching_cards[0])

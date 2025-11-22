@@ -36,9 +36,7 @@ def sample_deck_id(client: TestClient) -> str:
 4 Counterspell
 20 Island
 """
-    response = client.post(
-        "/api/v1/decks", json={"deck_text": deck_text, "deck_name": "Test Deck"}
-    )
+    response = client.post("/api/v1/decks", json={"deck_text": deck_text, "deck_name": "Test Deck"})
     return response.json()["deck_id"]
 
 
@@ -52,9 +50,7 @@ def test_get_all_hand_statistics_empty(client: TestClient) -> None:
     assert data["total"] == 0
 
 
-def test_get_all_hand_statistics_with_data(
-    client: TestClient, sample_deck_id: str
-) -> None:
+def test_get_all_hand_statistics_with_data(client: TestClient, sample_deck_id: str) -> None:
     """Test getting all hand statistics after recording decisions."""
     # Start session and record some decisions
     start_response = client.post(
@@ -111,9 +107,7 @@ def test_get_hand_statistics_not_found(client: TestClient) -> None:
     assert response.status_code == 404
 
 
-def test_get_hand_statistics_multiple_decisions(
-    client: TestClient, sample_deck_id: str
-) -> None:
+def test_get_hand_statistics_multiple_decisions(client: TestClient, sample_deck_id: str) -> None:
     """Test hand statistics with multiple decisions for same hand."""
     # We'll need to create the same hand multiple times
     # This is tricky with random shuffling, but we can record multiple decisions
@@ -174,9 +168,7 @@ def test_get_deck_statistics_no_games(client: TestClient, sample_deck_id: str) -
     assert "No statistics available" in response.json()["detail"]
 
 
-def test_get_deck_statistics_multiple_games(
-    client: TestClient, sample_deck_id: str
-) -> None:
+def test_get_deck_statistics_multiple_games(client: TestClient, sample_deck_id: str) -> None:
     """Test deck statistics with multiple games."""
     # Game 1: Keep opening hand
     start1 = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})
@@ -201,9 +193,7 @@ def test_get_deck_statistics_multiple_games(
     assert data["mulligan_distribution"]["1"] == 1  # 1 hand kept at 6
 
 
-def test_deck_statistics_mulligan_distribution(
-    client: TestClient, sample_deck_id: str
-) -> None:
+def test_deck_statistics_mulligan_distribution(client: TestClient, sample_deck_id: str) -> None:
     """Test that mulligan distribution is calculated correctly."""
     # Keep at 7
     start1 = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})

@@ -62,9 +62,7 @@ def get_hand_statistics(
     """
     stats = datastore.get_hand_statistics(signature)
     if not stats:
-        raise HTTPException(
-            status_code=404, detail=f"No statistics found for hand: {signature}"
-        )
+        raise HTTPException(status_code=404, detail=f"No statistics found for hand: {signature}")
 
     return HandStatsResponse(
         hand_signature=stats.hand_signature,
@@ -99,9 +97,7 @@ def get_deck_statistics(
     # Get all decisions for this deck
     decisions = datastore.get_decisions_for_deck(deck_id)
     if not decisions:
-        raise HTTPException(
-            status_code=404, detail=f"No statistics available for deck: {deck_id}"
-        )
+        raise HTTPException(status_code=404, detail=f"No statistics available for deck: {deck_id}")
 
     # Calculate statistics
     total_games = len(decisions)

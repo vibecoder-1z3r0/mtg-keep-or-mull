@@ -236,9 +236,7 @@ def test_record_decision_invalid(client: TestClient, sample_deck_id: str) -> Non
     session_id = start_response.json()["session_id"]
 
     # Try to record invalid decision
-    response = client.post(
-        f"/api/v1/sessions/{session_id}/decision", json={"decision": "invalid"}
-    )
+    response = client.post(f"/api/v1/sessions/{session_id}/decision", json={"decision": "invalid"})
 
     assert response.status_code == 422  # Validation error
 
