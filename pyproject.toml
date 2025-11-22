@@ -38,6 +38,18 @@ dev = [
     "mypy>=1.5.0",
     "pre-commit>=3.3.0",
 ]
+# Database backend dependencies (optional - install as needed)
+postgres = [
+    "psycopg2-binary>=2.9.0",
+]
+mysql = [
+    "mysql-connector-python>=8.0.0",
+]
+# Install all database backends
+databases = [
+    "psycopg2-binary>=2.9.0",
+    "mysql-connector-python>=8.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/vibecoder-1z3r0/mtg-keep-or-mull"
