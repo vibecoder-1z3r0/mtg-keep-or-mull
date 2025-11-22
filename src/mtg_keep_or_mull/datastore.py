@@ -95,27 +95,42 @@ class DataStore(Protocol):
         ...
 
     def list_decks_filtered(
-        self, format: Optional[str] = None, archetype: Optional[str] = None
+        self,
+        format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
     ) -> List[str]:
-        """List deck IDs filtered by format and/or archetype.
+        """List deck IDs filtered by format, archetype, colors, and/or tags.
+
+        Filters use "contains" logic - a deck matches if the filter value is IN the deck's list.
+        Multiple filters use AND logic.
 
         Args:
-            format: Optional format filter (e.g., "Pauper", "Modern")
-            archetype: Optional archetype filter (e.g., "Aggro", "Control")
+            format: Optional format filter (e.g., "Pauper") - matches if value in deck.format list
+            archetype: Optional archetype filter (e.g., "Aggro") - matches if value in deck.archetype list
+            colors: Optional color filter (e.g., "U", "Grixis") - matches if value in deck.colors list
+            tags: Optional tag filter (e.g., "burn") - matches if value in deck.tags list
 
         Returns:
-            List of deck_id strings matching the filters
+            List of deck_id strings matching all provided filters
         """
         ...
 
     def get_random_deck(
-        self, format: Optional[str] = None, archetype: Optional[str] = None
+        self,
+        format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
     ) -> Optional[DeckData]:
-        """Get a random deck, optionally filtered by format and/or archetype.
+        """Get a random deck, optionally filtered by format, archetype, colors, and/or tags.
 
         Args:
-            format: Optional format filter (e.g., "Pauper", "Modern")
-            archetype: Optional archetype filter (e.g., "Aggro", "Control")
+            format: Optional format filter - matches if value in deck.format list
+            archetype: Optional archetype filter - matches if value in deck.archetype list
+            colors: Optional color filter - matches if value in deck.colors list
+            tags: Optional tag filter - matches if value in deck.tags list
 
         Returns:
             Random DeckData matching the filters, or None if no decks match
@@ -194,22 +209,37 @@ class MockDataStore:
         return list(self._decisions)
 
     def list_decks_filtered(
-        self, format: Optional[str] = None, archetype: Optional[str] = None
+        self,
+        format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
     ) -> List[str]:
-        """List deck IDs filtered by format and/or archetype."""
+        """List deck IDs filtered by format, archetype, colors, and/or tags.
+
+        Uses "contains" logic - filters match if value is IN the deck's list.
+        """
         deck_ids = []
         for deck_id, deck in self._decks.items():
             # If no filters provided, include all decks
-            if format is None and archetype is None:
+            if format is None and archetype is None and colors is None and tags is None:
                 deck_ids.append(deck_id)
                 continue
 
-            # Check format filter
-            if format is not None and deck.format != format:
+            # Check format filter (value must be IN deck.format list)
+            if format is not None and format not in deck.format:
                 continue
 
-            # Check archetype filter
-            if archetype is not None and deck.archetype != archetype:
+            # Check archetype filter (value must be IN deck.archetype list)
+            if archetype is not None and archetype not in deck.archetype:
+                continue
+
+            # Check colors filter (value must be IN deck.colors list)
+            if colors is not None and colors not in deck.colors:
+                continue
+
+            # Check tags filter (value must be IN deck.tags list)
+            if tags is not None and tags not in deck.tags:
                 continue
 
             # Deck passed all filters
@@ -218,12 +248,18 @@ class MockDataStore:
         return deck_ids
 
     def get_random_deck(
-        self, format: Optional[str] = None, archetype: Optional[str] = None
+        self,
+        format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
     ) -> Optional[DeckData]:
-        """Get a random deck, optionally filtered by format and/or archetype."""
+        """Get a random deck, optionally filtered by format, archetype, colors, and/or tags."""
         import random
 
-        matching_deck_ids = self.list_decks_filtered(format=format, archetype=archetype)
+        matching_deck_ids = self.list_decks_filtered(
+            format=format, archetype=archetype, colors=colors, tags=tags
+        )
 
         if not matching_deck_ids:
             return None
@@ -424,9 +460,16 @@ class JSONDataStore:
         return all_stats
 
     def list_decks_filtered(
-        self, format: Optional[str] = None, archetype: Optional[str] = None
+        self,
+        format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
     ) -> List[str]:
-        """List deck IDs filtered by format and/or archetype."""
+        """List deck IDs filtered by format, archetype, colors, and/or tags.
+
+        Uses "contains" logic - filters match if value is IN the deck's list.
+        """
         all_deck_ids = self.list_decks()
         filtered_ids = []
 
@@ -436,16 +479,24 @@ class JSONDataStore:
                 continue
 
             # If no filters provided, include all decks
-            if format is None and archetype is None:
+            if format is None and archetype is None and colors is None and tags is None:
                 filtered_ids.append(deck_id)
                 continue
 
-            # Check format filter
-            if format is not None and deck.format != format:
+            # Check format filter (value must be IN deck.format list)
+            if format is not None and format not in deck.format:
                 continue
 
-            # Check archetype filter
-            if archetype is not None and deck.archetype != archetype:
+            # Check archetype filter (value must be IN deck.archetype list)
+            if archetype is not None and archetype not in deck.archetype:
+                continue
+
+            # Check colors filter (value must be IN deck.colors list)
+            if colors is not None and colors not in deck.colors:
+                continue
+
+            # Check tags filter (value must be IN deck.tags list)
+            if tags is not None and tags not in deck.tags:
                 continue
 
             # Deck passed all filters
@@ -454,12 +505,18 @@ class JSONDataStore:
         return filtered_ids
 
     def get_random_deck(
-        self, format: Optional[str] = None, archetype: Optional[str] = None
+        self,
+        format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
     ) -> Optional[DeckData]:
-        """Get a random deck, optionally filtered by format and/or archetype."""
+        """Get a random deck, optionally filtered by format, archetype, colors, and/or tags."""
         import random
 
-        matching_deck_ids = self.list_decks_filtered(format=format, archetype=archetype)
+        matching_deck_ids = self.list_decks_filtered(
+            format=format, archetype=archetype, colors=colors, tags=tags
+        )
 
         if not matching_deck_ids:
             return None
@@ -514,8 +571,10 @@ class SQLiteDataStore:
                 main_deck TEXT NOT NULL,
                 sideboard TEXT NOT NULL,
                 total_games INTEGER NOT NULL DEFAULT 0,
-                format TEXT NOT NULL DEFAULT 'Unknown',
-                archetype TEXT NOT NULL DEFAULT 'Unknown'
+                format TEXT NOT NULL DEFAULT '[]',
+                archetype TEXT NOT NULL DEFAULT '[]',
+                colors TEXT NOT NULL DEFAULT '[]',
+                tags TEXT NOT NULL DEFAULT '[]'
             )
         """
         )
@@ -578,12 +637,16 @@ class SQLiteDataStore:
         # Serialize lists to JSON
         main_deck_json = json.dumps(deck.main_deck)
         sideboard_json = json.dumps(deck.sideboard)
+        format_json = json.dumps(deck.format)
+        archetype_json = json.dumps(deck.archetype)
+        colors_json = json.dumps(deck.colors)
+        tags_json = json.dumps(deck.tags)
 
         # Insert or replace deck
         cursor.execute(
             """
-            INSERT OR REPLACE INTO decks (deck_id, deck_name, main_deck, sideboard, total_games, format, archetype)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO decks (deck_id, deck_name, main_deck, sideboard, total_games, format, archetype, colors, tags)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
                 deck.deck_id,
@@ -591,8 +654,10 @@ class SQLiteDataStore:
                 main_deck_json,
                 sideboard_json,
                 deck.total_games,
-                deck.format,
-                deck.archetype,
+                format_json,
+                archetype_json,
+                colors_json,
+                tags_json,
             ),
         )
 
@@ -615,7 +680,7 @@ class SQLiteDataStore:
 
         cursor.execute(
             """
-            SELECT deck_id, deck_name, main_deck, sideboard, total_games, format, archetype
+            SELECT deck_id, deck_name, main_deck, sideboard, total_games, format, archetype, colors, tags
             FROM decks
             WHERE deck_id = ?
         """,
@@ -634,8 +699,10 @@ class SQLiteDataStore:
             main_deck=json.loads(row["main_deck"]),
             sideboard=json.loads(row["sideboard"]),
             total_games=row["total_games"],
-            format=row["format"],
-            archetype=row["archetype"],
+            format=json.loads(row["format"]),
+            archetype=json.loads(row["archetype"]),
+            colors=json.loads(row["colors"]),
+            tags=json.loads(row["tags"]),
         )
 
     def list_decks(self) -> List[str]:
@@ -1518,82 +1585,70 @@ class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
         return all_stats
 
     def list_decks_filtered(
-        self, format: Optional[str] = None, archetype: Optional[str] = None
+        self,
+        format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
     ) -> List[str]:
-        """List deck IDs filtered by format and/or archetype.
+        """List deck IDs filtered by format, archetype, colors, and/or tags.
 
-        Uses SQL WHERE clauses for efficient filtering.
+        Since metadata is stored as JSON arrays, we load all decks and filter in Python
+        for better compatibility across SQLite versions.
         """
-        conn = self._get_connection()
-        cursor = conn.cursor()
+        all_deck_ids = self.list_decks()
+        filtered_ids = []
 
-        # Build SQL query with optional WHERE clauses
-        query = "SELECT deck_id FROM decks"
-        params: list = []
-        where_clauses = []
+        for deck_id in all_deck_ids:
+            deck = self.load_deck(deck_id)
+            if not deck:
+                continue
 
-        if format is not None:
-            where_clauses.append("format = ?")
-            params.append(format)
+            # If no filters provided, include all decks
+            if format is None and archetype is None and colors is None and tags is None:
+                filtered_ids.append(deck_id)
+                continue
 
-        if archetype is not None:
-            where_clauses.append("archetype = ?")
-            params.append(archetype)
+            # Check format filter (value must be IN deck.format list)
+            if format is not None and format not in deck.format:
+                continue
 
-        if where_clauses:
-            query += " WHERE " + " AND ".join(where_clauses)
+            # Check archetype filter (value must be IN deck.archetype list)
+            if archetype is not None and archetype not in deck.archetype:
+                continue
 
-        cursor.execute(query, params)
-        rows = cursor.fetchall()
-        conn.close()
+            # Check colors filter (value must be IN deck.colors list)
+            if colors is not None and colors not in deck.colors:
+                continue
 
-        return [row["deck_id"] for row in rows]
+            # Check tags filter (value must be IN deck.tags list)
+            if tags is not None and tags not in deck.tags:
+                continue
+
+            # Deck passed all filters
+            filtered_ids.append(deck_id)
+
+        return filtered_ids
 
     def get_random_deck(
-        self, format: Optional[str] = None, archetype: Optional[str] = None
+        self,
+        format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
     ) -> Optional[DeckData]:
-        """Get a random deck, optionally filtered by format and/or archetype.
+        """Get a random deck, optionally filtered by format, archetype, colors, and/or tags."""
+        import random
 
-        Uses SQL ORDER BY RANDOM() for efficient random selection.
-        """
-        conn = self._get_connection()
-        cursor = conn.cursor()
+        matching_deck_ids = self.list_decks_filtered(
+            format=format, archetype=archetype, colors=colors, tags=tags
+        )
 
-        # Build SQL query with optional WHERE clauses and LIMIT 1
-        query = "SELECT deck_id, deck_name, main_deck, sideboard, total_games, format, archetype FROM decks"
-        params: list = []
-        where_clauses = []
-
-        if format is not None:
-            where_clauses.append("format = ?")
-            params.append(format)
-
-        if archetype is not None:
-            where_clauses.append("archetype = ?")
-            params.append(archetype)
-
-        if where_clauses:
-            query += " WHERE " + " AND ".join(where_clauses)
-
-        # Use SQLite's RANDOM() for efficient random selection
-        query += " ORDER BY RANDOM() LIMIT 1"
-
-        cursor.execute(query, params)
-        row = cursor.fetchone()
-        conn.close()
-
-        if row is None:
+        if not matching_deck_ids:
             return None
 
-        return DeckData(
-            deck_id=row["deck_id"],
-            deck_name=row["deck_name"],
-            main_deck=json.loads(row["main_deck"]),
-            sideboard=json.loads(row["sideboard"]),
-            total_games=row["total_games"],
-            format=row["format"],
-            archetype=row["archetype"],
-        )
+        random_deck_id = random.choice(matching_deck_ids)
+        return self.load_deck(random_deck_id)
 
 
 # AIA: Primarily AI, Human-initiated, Reviewed, Claude Code Web [Sonnet 4.5] v1.0
