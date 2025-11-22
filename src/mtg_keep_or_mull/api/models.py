@@ -33,6 +33,28 @@ class DeckUploadRequest(BaseModel):
     )
 
 
+class DeckUpdateRequest(BaseModel):
+    """Request model for updating deck metadata."""
+
+    deck_name: Optional[str] = Field(None, description="Optional human-readable deck name")
+    format: Optional[List[str]] = Field(None, description="MTG formats (e.g., Pauper, Modern, Standard)")
+    archetype: Optional[List[str]] = Field(None, description="Deck archetypes (e.g., Aggro, Control, Combo)")
+    colors: Optional[List[str]] = Field(None, description="Color identity (e.g., U, Grixis, Mono-Blue)")
+    tags: Optional[List[str]] = Field(None, description="Custom tags for categorization")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "deck_name": "Updated Deck Name",
+                "format": ["Modern", "Pioneer"],
+                "archetype": ["Control"],
+                "colors": ["U", "W", "Azorius"],
+                "tags": ["permission", "card-draw"],
+            }
+        }
+    )
+
+
 class DeckResponse(BaseModel):
     """Response model for deck information."""
 

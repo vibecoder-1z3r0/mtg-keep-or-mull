@@ -67,6 +67,17 @@ class DataStore(Protocol):
         """
         ...
 
+    def update_deck(self, deck: DeckData) -> None:
+        """Update an existing deck's metadata.
+
+        Args:
+            deck: The deck data with updated metadata
+
+        Raises:
+            ValueError: If the deck doesn't exist
+        """
+        ...
+
     def list_decks(self) -> List[str]:
         """List all available deck IDs.
 
@@ -195,6 +206,19 @@ class MockDataStore:
     def load_deck(self, deck_id: str) -> Optional[DeckData]:
         """Load a deck by ID."""
         return self._decks.get(deck_id)
+
+    def update_deck(self, deck: DeckData) -> None:
+        """Update an existing deck's metadata.
+
+        Args:
+            deck: The deck data with updated metadata
+
+        Raises:
+            ValueError: If the deck doesn't exist
+        """
+        if deck.deck_id not in self._decks:
+            raise ValueError(f"Deck not found: {deck.deck_id}")
+        self._decks[deck.deck_id] = deck
 
     def list_decks(self) -> List[str]:
         """List all available deck IDs."""
@@ -332,6 +356,24 @@ class JSONDataStore:
             data = json.load(f)
 
         return DeckData(**data)
+
+    def update_deck(self, deck: DeckData) -> None:
+        """Update an existing deck's metadata.
+
+        Args:
+            deck: The deck data with updated metadata
+
+        Raises:
+            ValueError: If the deck doesn't exist
+        """
+        deck_file = self.decks_dir / f"{deck.deck_id}.json"
+
+        if not deck_file.exists():
+            raise ValueError(f"Deck not found: {deck.deck_id}")
+
+        # Save the updated deck
+        with open(deck_file, "w", encoding="utf-8") as f:
+            json.dump(deck.model_dump(), f, indent=2, ensure_ascii=False)
 
     def list_decks(self) -> List[str]:
         """List all available deck IDs.
@@ -704,6 +746,55 @@ class SQLiteDataStore:
             colors=json.loads(row["colors"]),
             tags=json.loads(row["tags"]),
         )
+
+    def update_deck(self, deck: DeckData) -> None:
+        """Update an existing deck's metadata.
+
+        Args:
+            deck: The deck data with updated metadata
+
+        Raises:
+            ValueError: If the deck doesn't exist
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        # Serialize lists to JSON
+        main_deck_json = json.dumps(deck.main_deck)
+        sideboard_json = json.dumps(deck.sideboard)
+        format_json = json.dumps(deck.format)
+        archetype_json = json.dumps(deck.archetype)
+        colors_json = json.dumps(deck.colors)
+        tags_json = json.dumps(deck.tags)
+
+        # Update deck
+        cursor.execute(
+            """
+            UPDATE decks
+            SET deck_name = ?, main_deck = ?, sideboard = ?, total_games = ?,
+                format = ?, archetype = ?, colors = ?, tags = ?
+            WHERE deck_id = ?
+        """,
+            (
+                deck.deck_name,
+                main_deck_json,
+                sideboard_json,
+                deck.total_games,
+                format_json,
+                archetype_json,
+                colors_json,
+                tags_json,
+                deck.deck_id,
+            ),
+        )
+
+        # Check if deck was found
+        if cursor.rowcount == 0:
+            conn.close()
+            raise ValueError(f"Deck not found: {deck.deck_id}")
+
+        conn.commit()
+        conn.close()
 
     def list_decks(self) -> List[str]:
         """List all available deck IDs.

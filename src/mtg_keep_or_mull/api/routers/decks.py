@@ -6,7 +6,12 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 
 from mtg_keep_or_mull.api.dependencies import get_datastore
-from mtg_keep_or_mull.api.models import DeckListResponse, DeckResponse, DeckUploadRequest
+from mtg_keep_or_mull.api.models import (
+    DeckListResponse,
+    DeckResponse,
+    DeckUpdateRequest,
+    DeckUploadRequest,
+)
 from mtg_keep_or_mull.datastore import DataStore
 from mtg_keep_or_mull.deck import Deck
 from mtg_keep_or_mull.models import DeckData
@@ -197,6 +202,74 @@ def get_deck(deck_id: str, datastore: DataStore = Depends(get_datastore)) -> Dec
         main_deck_size=len(deck_data.main_deck),
         sideboard_size=len(deck_data.sideboard),
         created_at=datetime.now(),  # TODO: Store creation time in DeckData
+        format=deck_data.format,
+        archetype=deck_data.archetype,
+        colors=deck_data.colors,
+        tags=deck_data.tags,
+    )
+
+
+@router.patch("/{deck_id}", response_model=DeckResponse)
+def update_deck(
+    deck_id: str,
+    request: DeckUpdateRequest,
+    datastore: DataStore = Depends(get_datastore),
+) -> DeckResponse:
+    """Update a deck's metadata.
+
+    Args:
+        deck_id: Unique deck identifier
+        request: Deck update request with optional metadata fields
+        datastore: DataStore dependency
+
+    Returns:
+        DeckResponse with updated deck information
+
+    Raises:
+        HTTPException: If deck not found or no fields to update
+    """
+    # Load existing deck
+    deck_data = datastore.load_deck(deck_id)
+    if not deck_data:
+        raise HTTPException(status_code=404, detail=f"Deck not found: {deck_id}")
+
+    # Check if at least one field is provided for update
+    update_fields = {
+        k: v
+        for k, v in request.model_dump(exclude_unset=True).items()
+        if v is not None
+    }
+    if not update_fields:
+        raise HTTPException(
+            status_code=400,
+            detail="At least one field must be provided for update",
+        )
+
+    # Update only the fields that were provided
+    if request.deck_name is not None:
+        deck_data.deck_name = request.deck_name
+    if request.format is not None:
+        deck_data.format = request.format
+    if request.archetype is not None:
+        deck_data.archetype = request.archetype
+    if request.colors is not None:
+        deck_data.colors = request.colors
+    if request.tags is not None:
+        deck_data.tags = request.tags
+
+    # Save updated deck
+    try:
+        datastore.update_deck(deck_data)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+    # Return updated deck
+    return DeckResponse(
+        deck_id=deck_data.deck_id,
+        deck_name=deck_data.deck_name,
+        main_deck_size=len(deck_data.main_deck),
+        sideboard_size=len(deck_data.sideboard),
+        created_at=datetime.now(),
         format=deck_data.format,
         archetype=deck_data.archetype,
         colors=deck_data.colors,
