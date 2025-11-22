@@ -10,7 +10,7 @@ This document tracks feature enhancements, open design questions, and future dev
 
 ### Automatic Decision Recording
 
-**Status:** Identified during testing - Needs Fix
+**Status:** ✅ **Fixed** (2025-11-22)
 **Priority:** Critical
 **Complexity:** Low
 
@@ -116,16 +116,18 @@ Track and display keep rate statistics segmented by mulligan depth (opening 7, m
 
 ### 3. Track Cards Bottomed (London Mulligan)
 
-**Status:** Proposed
+**Status:** ✅ **Completed** (2025-11-22)
 **Priority:** Medium
 **Complexity:** Medium
 
 Record which cards were put on the bottom during London mulligan keep decisions.
 
-**Implementation:**
-- Add `cards_bottomed: List[str]` to `HandDecisionData`
-- Populate from `KeepHandRequest.cards_to_bottom` when recording decisions
-- Add endpoint to retrieve bottoming patterns
+**Implementation:** ✅ **DONE**
+- ✅ Added `cards_bottomed: Optional[List[str]]` to `HandDecisionData` model
+- ✅ Automatically populated from `KeepHandRequest.cards_to_bottom` in /keep endpoint
+- ✅ Stored with every keep decision (None when no mulligans)
+- ✅ 3 comprehensive tests covering all scenarios
+- ⏳ Endpoint to retrieve/analyze bottoming patterns (pending Feature #4)
 
 **Insights Enabled:**
 - "Cards most commonly bottomed" (always bottom expensive creatures?)
