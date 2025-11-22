@@ -66,9 +66,7 @@ class TestSQLiteDataStore:
         cursor = conn.cursor()
 
         # Check decks table exists
-        cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='decks'"
-        )
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='decks'")
         assert cursor.fetchone() is not None
 
         # Check hand_decisions table exists
@@ -79,9 +77,7 @@ class TestSQLiteDataStore:
 
         conn.close()
 
-    def test_save_and_load_deck(
-        self, datastore: SQLiteDataStore, sample_deck: DeckData
-    ) -> None:
+    def test_save_and_load_deck(self, datastore: SQLiteDataStore, sample_deck: DeckData) -> None:
         """Test that save_deck and load_deck work correctly."""
         # When: Save a deck
         deck_id = datastore.save_deck(sample_deck)
@@ -97,9 +93,7 @@ class TestSQLiteDataStore:
         assert loaded_deck.sideboard == sample_deck.sideboard
         assert loaded_deck.total_games == sample_deck.total_games
 
-    def test_load_deck_returns_none_when_not_found(
-        self, datastore: SQLiteDataStore
-    ) -> None:
+    def test_load_deck_returns_none_when_not_found(self, datastore: SQLiteDataStore) -> None:
         """Test that load_deck returns None for non-existent deck."""
         # When: Try to load a deck that doesn't exist
         result = datastore.load_deck("nonexistent_deck")
@@ -122,9 +116,7 @@ class TestSQLiteDataStore:
         # Then: Should return both deck IDs
         assert sorted(deck_ids) == ["test_deck_001", "test_deck_002"]
 
-    def test_list_decks_returns_empty_list_when_no_decks(
-        self, datastore: SQLiteDataStore
-    ) -> None:
+    def test_list_decks_returns_empty_list_when_no_decks(self, datastore: SQLiteDataStore) -> None:
         """Test that list_decks returns empty list when no decks saved."""
         # When: List decks with no saved decks
         deck_ids = datastore.list_decks()
@@ -281,9 +273,7 @@ class TestSQLiteDataStore:
         signatures = {stat.hand_signature for stat in all_stats}
         assert signatures == {"Brainstorm,Island,Island", "Counterspell,Island,Island"}
 
-    def test_update_existing_deck(
-        self, datastore: SQLiteDataStore, sample_deck: DeckData
-    ) -> None:
+    def test_update_existing_deck(self, datastore: SQLiteDataStore, sample_deck: DeckData) -> None:
         """Test that saving a deck with same ID updates it."""
         # Given: A saved deck
         datastore.save_deck(sample_deck)
