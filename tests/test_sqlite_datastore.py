@@ -3,6 +3,7 @@
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from typing import Generator
 
 import pytest
 
@@ -14,7 +15,7 @@ class TestSQLiteDataStore:
     """Test suite for SQLiteDataStore class."""
 
     @pytest.fixture
-    def temp_db_file(self) -> Path:
+    def temp_db_file(self) -> Generator[Path, None, None]:
         """Create a temporary database file."""
         with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmpfile:
             yield Path(tmpfile.name)
@@ -54,7 +55,7 @@ class TestSQLiteDataStore:
     def test_initialization_creates_tables(self, temp_db_file: Path) -> None:
         """Test that SQLiteDataStore creates necessary tables on init."""
         # When: Create a SQLiteDataStore
-        store = SQLiteDataStore(db_path=temp_db_file)
+        SQLiteDataStore(db_path=temp_db_file)
 
         # Then: Database file should exist
         assert temp_db_file.exists()

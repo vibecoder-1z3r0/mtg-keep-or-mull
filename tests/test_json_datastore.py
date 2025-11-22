@@ -4,6 +4,7 @@ import json
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from typing import Generator
 
 import pytest
 
@@ -15,7 +16,7 @@ class TestJSONDataStore:
     """Test suite for JSONDataStore class."""
 
     @pytest.fixture
-    def temp_data_dir(self) -> Path:
+    def temp_data_dir(self) -> Generator[Path, None, None]:
         """Create a temporary directory for test data."""
         with tempfile.TemporaryDirectory() as tmpdir:
             yield Path(tmpdir)
