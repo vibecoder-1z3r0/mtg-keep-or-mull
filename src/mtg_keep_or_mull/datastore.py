@@ -1,5 +1,7 @@
 """DataStore interface and implementations for MTG Keep or Mull."""
 
+# pylint: disable=too-many-lines  # Multiple storage implementations in one module
+
 import json
 import sqlite3
 from datetime import datetime
@@ -663,7 +665,7 @@ class SQLiteDataStore:
         return all_stats
 
 
-class PostgreSQLDataStore:
+class PostgreSQLDataStore:  # pylint: disable=too-many-instance-attributes
     """PostgreSQL database implementation of DataStore.
 
     This implementation stores data in a PostgreSQL database,
@@ -672,7 +674,7 @@ class PostgreSQLDataStore:
     Requires: psycopg2-binary
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         host: str = "localhost",
         port: int = 5432,
@@ -690,8 +692,8 @@ class PostgreSQLDataStore:
             password: Database password
         """
         try:
-            import psycopg2
-            import psycopg2.extras
+            import psycopg2  # type: ignore[import-untyped]
+            import psycopg2.extras  # type: ignore[import-untyped] # noqa: F401
         except ImportError as e:
             raise ImportError(
                 "PostgreSQL support requires psycopg2. "
@@ -963,7 +965,7 @@ class PostgreSQLDataStore:
         return all_stats
 
 
-class MariaDBDataStore:
+class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
     """MariaDB/MySQL database implementation of DataStore.
 
     This implementation stores data in a MariaDB or MySQL database,
@@ -972,7 +974,7 @@ class MariaDBDataStore:
     Requires: mysql-connector-python
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         host: str = "localhost",
         port: int = 3306,
@@ -990,7 +992,7 @@ class MariaDBDataStore:
             password: Database password
         """
         try:
-            import mysql.connector
+            import mysql.connector  # type: ignore[import-not-found]
         except ImportError as e:
             raise ImportError(
                 "MariaDB/MySQL support requires mysql-connector-python. "
