@@ -100,7 +100,6 @@ def test_mulligan_hand_success(client: TestClient, sample_deck_id: str) -> None:
         "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
     )
     session_id = start_response.json()["session_id"]
-    original_hand = start_response.json()["current_hand"]["signature"]
 
     # Take mulligan
     response = client.post(f"/api/v1/sessions/{session_id}/mulligan")

@@ -4,7 +4,6 @@ import uuid
 from typing import Dict
 
 from mtg_keep_or_mull.datastore import DataStore, MockDataStore
-from mtg_keep_or_mull.deck import Deck
 from mtg_keep_or_mull.mulligan import MulliganSimulator
 
 # Global storage instances (will be dependency-injected)

@@ -1,6 +1,6 @@
 """Statistics API endpoints."""
 
-from typing import Dict, List
+from typing import Dict
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -11,7 +11,6 @@ from mtg_keep_or_mull.api.models import (
     HandStatsResponse,
 )
 from mtg_keep_or_mull.datastore import DataStore
-from mtg_keep_or_mull.models import HandDecisionData
 
 router = APIRouter(prefix="/statistics", tags=["statistics"])
 

@@ -1,11 +1,8 @@
 """Tests for the main FastAPI application."""
 
-import json
-
 import pytest
 from fastapi.testclient import TestClient
 from openapi_spec_validator import validate
-from openapi_spec_validator.readers import read_from_filename
 
 from mtg_keep_or_mull.api.app import app
 
