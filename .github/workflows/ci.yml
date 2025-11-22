@@ -25,17 +25,29 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
 
-      - name: Check code formatting with black
-        run: black --check src/ tests/
+      - name: Run linters in parallel
+        run: |
+          # Run all linters in parallel for faster CI
+          black --check src/ tests/ &
+          BLACK_PID=$!
 
-      - name: Lint with flake8
-        run: flake8 src/ tests/
+          flake8 src/ tests/ &
+          FLAKE8_PID=$!
 
-      - name: Lint with pylint
-        run: pylint src/ tests/
+          pylint src/ tests/ &
+          PYLINT_PID=$!
 
-      - name: Type check with mypy
-        run: mypy src/
+          mypy src/ &
+          MYPY_PID=$!
+
+          # Wait for all linters and collect exit codes
+          EXIT_CODE=0
+          wait $BLACK_PID || EXIT_CODE=$?
+          wait $FLAKE8_PID || EXIT_CODE=$?
+          wait $PYLINT_PID || EXIT_CODE=$?
+          wait $MYPY_PID || EXIT_CODE=$?
+
+          exit $EXIT_CODE
 
   test:
     name: Test (Python ${{ matrix.python-version }})
