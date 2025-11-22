@@ -16,6 +16,7 @@ from mtg_keep_or_mull.api.models import (
     DecisionRequest,
     HandResponse,
     KeepHandRequest,
+    MulliganRequest,
     SessionResponse,
     SessionStartRequest,
 )
@@ -133,6 +134,7 @@ def get_session(
 @router.post("/{session_id}/mulligan", response_model=SessionResponse)
 def mulligan_hand(
     session_id: str,
+    request: MulliganRequest = MulliganRequest(),
     sessions: Dict[str, MulliganSimulator] = Depends(get_sessions),
     session_decks: Dict[str, str] = Depends(get_session_decks),
     datastore: DataStore = Depends(get_datastore),
@@ -141,6 +143,7 @@ def mulligan_hand(
 
     Args:
         session_id: Unique session identifier
+        request: Mulligan request with optional reason
         sessions: Active sessions dictionary
         session_decks: Session to deck mapping
         datastore: DataStore dependency
@@ -170,6 +173,7 @@ def mulligan_hand(
         on_play=simulator.on_play,
         timestamp=datetime.now(),
         deck_id=deck_id,
+        reason=request.reason,
     )
     datastore.save_hand_decision(decision_data)
 
@@ -241,6 +245,7 @@ def keep_hand(
             timestamp=datetime.now(),
             deck_id=deck_id,
             cards_bottomed=request.cards_to_bottom if request.cards_to_bottom else None,
+            reason=request.reason,
         )
         datastore.save_hand_decision(decision_data)
 
@@ -299,6 +304,7 @@ def record_decision(
         on_play=simulator.on_play,
         timestamp=datetime.now(),
         deck_id=deck_id,
+        reason=request.reason,
     )
 
     # Save to datastore

@@ -29,6 +29,10 @@ class HandDecisionData(BaseModel):
         default=None,
         description="Cards put on bottom when keeping after mulligan (London Mulligan rule)",
     )
+    reason: Optional[str] = Field(
+        default=None,
+        description="Optional reason for the decision (e.g., 'Not enough lands', 'Good curve')",
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -50,6 +54,7 @@ class HandDecisionData(BaseModel):
                 "timestamp": "2025-11-22T10:30:00",
                 "deck_id": "mono_u_terror",
                 "cards_bottomed": ["Lórien Revealed"],
+                "reason": "2 lands with cantrip, good enough at 6",
             }
         }
     )

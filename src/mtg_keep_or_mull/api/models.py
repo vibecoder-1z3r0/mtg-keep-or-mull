@@ -1,7 +1,7 @@
 """API-specific Pydantic models for requests and responses."""
 
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -131,9 +131,29 @@ class KeepHandRequest(BaseModel):
     cards_to_bottom: List[str] = Field(
         ..., description="Card names to put on bottom (must match mulligan count)"
     )
+    reason: Optional[str] = Field(
+        None, description="Optional reason for keeping this hand"
+    )
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"cards_to_bottom": ["Island", "Brainstorm"]}}
+        json_schema_extra={
+            "example": {
+                "cards_to_bottom": ["Island", "Brainstorm"],
+                "reason": "2 lands with cantrip",
+            }
+        }
+    )
+
+
+class MulliganRequest(BaseModel):
+    """Request model for mulliganing a hand."""
+
+    reason: Optional[str] = Field(
+        None, description="Optional reason for mulliganing this hand"
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"reason": "Too many lands"}}
     )
 
 
@@ -141,8 +161,15 @@ class DecisionRequest(BaseModel):
     """Request model for recording a mulligan decision."""
 
     decision: str = Field(..., pattern="^(keep|mull)$", description="keep or mull")
+    reason: Optional[str] = Field(
+        None, description="Optional reason for this decision"
+    )
 
-    model_config = ConfigDict(json_schema_extra={"example": {"decision": "keep"}})
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {"decision": "keep", "reason": "2 lands with cantrip"}
+        }
+    )
 
 
 # ========== Statistics API Models ==========
@@ -189,6 +216,10 @@ class DeckStatsResponse(BaseModel):
     hands_kept_at_7: int = Field(..., description="Games where opening 7 was kept")
     hands_kept_at_6: int = Field(..., description="Games that mulled to 6")
     hands_kept_at_5: int = Field(..., description="Games that mulled to 5")
+    keep_rate_by_mulligan_count: dict[int, float] = Field(
+        ...,
+        description="Keep rate percentage at each mulligan depth (0=opening 7, 1=mull to 6, etc.)",
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -200,6 +231,67 @@ class DeckStatsResponse(BaseModel):
                 "hands_kept_at_7": 25,
                 "hands_kept_at_6": 12,
                 "hands_kept_at_5": 4,
+                "keep_rate_by_mulligan_count": {"0": 65.0, "1": 45.0, "2": 85.0, "3": 95.0},
+            }
+        }
+    )
+
+
+class DecisionResponse(BaseModel):
+    """Response model for a single decision in history."""
+
+    hand_signature: str = Field(..., description="Normalized hand signature")
+    hand_display: List[str] = Field(..., description="Cards in display order")
+    mulligan_count: int = Field(..., description="Number of mulligans taken")
+    decision: str = Field(..., description="keep or mull")
+    lands_in_hand: int = Field(..., description="Number of lands")
+    on_play: bool = Field(..., description="On the play or draw")
+    timestamp: str = Field(..., description="ISO format timestamp")
+    deck_id: str = Field(..., description="Deck identifier")
+    cards_bottomed: Optional[List[str]] = Field(default=None, description="Cards put on bottom")
+    reason: Optional[str] = Field(default=None, description="Reason for the decision")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "hand_signature": "Brainstorm,Counterspell,Island,Island,Mental Note",
+                "hand_display": ["Island", "Brainstorm", "Counterspell", "Mental Note", "Island"],
+                "mulligan_count": 1,
+                "decision": "keep",
+                "lands_in_hand": 2,
+                "on_play": True,
+                "timestamp": "2025-11-22T10:30:00",
+                "deck_id": "mono_u_terror_20251122",
+                "cards_bottomed": ["Mental Note"],
+                "reason": "2 lands with cantrip, good enough at 6",
+            }
+        }
+    )
+
+
+class DecisionHistoryResponse(BaseModel):
+    """Response model for decision history list."""
+
+    decisions: List[DecisionResponse] = Field(..., description="List of decisions")
+    total: int = Field(..., description="Total number of decisions")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "decisions": [
+                    {
+                        "hand_signature": "Brainstorm,Island,Island",
+                        "hand_display": ["Island", "Brainstorm", "Island"],
+                        "mulligan_count": 0,
+                        "decision": "mull",
+                        "lands_in_hand": 2,
+                        "on_play": True,
+                        "timestamp": "2025-11-22T10:29:00",
+                        "deck_id": "mono_u_terror_20251122",
+                        "cards_bottomed": None,
+                    }
+                ],
+                "total": 1,
             }
         }
     )

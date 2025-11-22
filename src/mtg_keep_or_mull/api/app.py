@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from mtg_keep_or_mull.api.routers import decks, sessions, statistics
+from mtg_keep_or_mull.api.routers import decks, decisions, sessions, statistics
 
 # Create FastAPI app
 app = FastAPI(
@@ -40,6 +40,7 @@ app.add_middleware(
 app.include_router(decks.router, prefix="/api/v1")
 app.include_router(sessions.router, prefix="/api/v1")
 app.include_router(statistics.router, prefix="/api/v1")
+app.include_router(decisions.router, prefix="/api/v1")
 
 
 @app.get("/", tags=["root"])

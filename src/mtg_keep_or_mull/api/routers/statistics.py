@@ -121,6 +121,27 @@ def get_deck_statistics(
     hands_kept_at_6 = mulligan_distribution.get(1, 0)
     hands_kept_at_5 = mulligan_distribution.get(2, 0)
 
+    # Calculate keep rate by mulligan depth
+    # For each depth, count: (1) total hands seen at that depth, (2) keeps at that depth
+    keep_rate_by_depth: Dict[int, float] = {}
+
+    # Group all decisions by mulligan count
+    decisions_by_depth: Dict[int, list] = {}
+    for decision in decisions:
+        depth = decision.mulligan_count
+        if depth not in decisions_by_depth:
+            decisions_by_depth[depth] = []
+        decisions_by_depth[depth].append(decision)
+
+    # Calculate keep rate for each depth
+    for depth, depth_decisions in decisions_by_depth.items():
+        total_at_depth = len(depth_decisions)
+        keeps_at_depth = sum(1 for d in depth_decisions if d.decision == "keep")
+
+        if total_at_depth > 0:
+            keep_rate = (keeps_at_depth / total_at_depth) * 100.0
+            keep_rate_by_depth[depth] = round(keep_rate, 2)
+
     return DeckStatsResponse(
         deck_id=deck_id,
         total_games=total_games,
@@ -129,6 +150,7 @@ def get_deck_statistics(
         hands_kept_at_7=hands_kept_at_7,
         hands_kept_at_6=hands_kept_at_6,
         hands_kept_at_5=hands_kept_at_5,
+        keep_rate_by_mulligan_count=keep_rate_by_depth,
     )
 
 

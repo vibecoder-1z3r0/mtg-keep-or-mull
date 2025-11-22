@@ -86,6 +86,14 @@ class DataStore(Protocol):
         """
         ...
 
+    def get_all_decisions(self) -> List[HandDecisionData]:
+        """Get all hand decisions across all decks.
+
+        Returns:
+            List of all hand decisions
+        """
+        ...
+
 
 class MockDataStore:
     """In-memory implementation of DataStore for testing and MVP.
@@ -152,6 +160,10 @@ class MockDataStore:
     def get_decisions_for_deck(self, deck_id: str) -> List[HandDecisionData]:
         """Get all hand decisions for a specific deck."""
         return [d for d in self._decisions if d.deck_id == deck_id]
+
+    def get_all_decisions(self) -> List[HandDecisionData]:
+        """Get all hand decisions across all decks."""
+        return list(self._decisions)
 
 
 class JSONDataStore:
@@ -273,6 +285,19 @@ class JSONDataStore:
 
         # Convert JSON data to HandDecisionData objects
         return [HandDecisionData(**d) for d in decisions_data]
+
+    def get_all_decisions(self) -> List[HandDecisionData]:
+        """Get all hand decisions across all decks.
+
+        Returns:
+            List of all hand decisions
+        """
+        all_decisions = []
+        for decisions_file in self.decisions_dir.glob("*.json"):
+            with open(decisions_file, "r", encoding="utf-8") as f:
+                decisions_data = json.load(f)
+                all_decisions.extend([HandDecisionData(**d) for d in decisions_data])
+        return all_decisions
 
     def get_hand_statistics(self, hand_signature: str) -> Optional[HandStats]:
         """Get aggregated statistics for a specific hand composition.
@@ -568,6 +593,44 @@ class SQLiteDataStore:
             ORDER BY timestamp
         """,
             (deck_id,),
+        )
+
+        rows = cursor.fetchall()
+        conn.close()
+
+        decisions = []
+        for row in rows:
+            decisions.append(
+                HandDecisionData(
+                    deck_id=row["deck_id"],
+                    hand_signature=row["hand_signature"],
+                    hand_display=json.loads(row["hand_display"]),
+                    mulligan_count=row["mulligan_count"],
+                    decision=row["decision"],
+                    lands_in_hand=row["lands_in_hand"],
+                    on_play=bool(row["on_play"]),
+                    timestamp=datetime.fromisoformat(row["timestamp"]),
+                )
+            )
+
+        return decisions
+
+    def get_all_decisions(self) -> List[HandDecisionData]:
+        """Get all hand decisions across all decks.
+
+        Returns:
+            List of all hand decisions
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT deck_id, hand_signature, hand_display, mulligan_count,
+                   decision, lands_in_hand, on_play, timestamp
+            FROM hand_decisions
+            ORDER BY timestamp
+        """
         )
 
         rows = cursor.fetchall()
@@ -906,6 +969,40 @@ class PostgreSQLDataStore:  # pylint: disable=too-many-instance-attributes
 
         return decisions
 
+    def get_all_decisions(self) -> List[HandDecisionData]:
+        """Get all hand decisions across all decks."""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT deck_id, hand_signature, hand_display, mulligan_count,
+                   decision, lands_in_hand, on_play, timestamp
+            FROM hand_decisions
+            ORDER BY timestamp
+        """
+        )
+
+        rows = cursor.fetchall()
+        conn.close()
+
+        decisions = []
+        for row in rows:
+            decisions.append(
+                HandDecisionData(
+                    deck_id=row[0],
+                    hand_signature=row[1],
+                    hand_display=json.loads(row[2]),
+                    mulligan_count=row[3],
+                    decision=row[4],
+                    lands_in_hand=row[5],
+                    on_play=row[6],
+                    timestamp=row[7],
+                )
+            )
+
+        return decisions
+
     def get_hand_statistics(self, hand_signature: str) -> Optional[HandStats]:
         """Get aggregated statistics for a specific hand composition."""
         conn = self._get_connection()
@@ -1184,6 +1281,40 @@ class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
             ORDER BY timestamp
         """,
             (deck_id,),
+        )
+
+        rows = cursor.fetchall()
+        conn.close()
+
+        decisions = []
+        for row in rows:
+            decisions.append(
+                HandDecisionData(
+                    deck_id=row[0],
+                    hand_signature=row[1],
+                    hand_display=json.loads(row[2]),
+                    mulligan_count=row[3],
+                    decision=row[4],
+                    lands_in_hand=row[5],
+                    on_play=row[6],
+                    timestamp=row[7],
+                )
+            )
+
+        return decisions
+
+    def get_all_decisions(self) -> List[HandDecisionData]:
+        """Get all hand decisions across all decks."""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT deck_id, hand_signature, hand_display, mulligan_count,
+                   decision, lands_in_hand, on_play, timestamp
+            FROM hand_decisions
+            ORDER BY timestamp
+        """
         )
 
         rows = cursor.fetchall()
