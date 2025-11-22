@@ -135,6 +135,7 @@ def mulligan_hand(
     session_id: str,
     sessions: Dict[str, MulliganSimulator] = Depends(get_sessions),
     session_decks: Dict[str, str] = Depends(get_session_decks),
+    datastore: DataStore = Depends(get_datastore),
 ) -> SessionResponse:
     """Mulligan the current hand.
 
@@ -142,6 +143,7 @@ def mulligan_hand(
         session_id: Unique session identifier
         sessions: Active sessions dictionary
         session_decks: Session to deck mapping
+        datastore: DataStore dependency
 
     Returns:
         SessionResponse with new hand
@@ -154,6 +156,22 @@ def mulligan_hand(
         raise HTTPException(status_code=404, detail=f"Session not found: {session_id}")
 
     deck_id = session_decks[session_id]
+
+    # Get current hand BEFORE mulligan to record the decision
+    current_hand = simulator.get_current_hand()
+
+    # Auto-record mulligan decision
+    decision_data = HandDecisionData(
+        hand_signature=current_hand.get_signature(),
+        hand_display=[card.name for card in current_hand.get_cards()],
+        mulligan_count=simulator.get_mulligan_count(),
+        decision="mull",
+        lands_in_hand=current_hand.count_lands(),
+        on_play=simulator.on_play,
+        timestamp=datetime.now(),
+        deck_id=deck_id,
+    )
+    datastore.save_hand_decision(decision_data)
 
     # Take mulligan
     hand = simulator.mulligan()
@@ -173,6 +191,7 @@ def keep_hand(
     request: KeepHandRequest,
     sessions: Dict[str, MulliganSimulator] = Depends(get_sessions),
     session_decks: Dict[str, str] = Depends(get_session_decks),
+    datastore: DataStore = Depends(get_datastore),
 ) -> SessionResponse:
     """Keep the current hand, bottoming cards if needed.
 
@@ -181,6 +200,7 @@ def keep_hand(
         request: Keep hand request with cards to bottom
         sessions: Active sessions dictionary
         session_decks: Session to deck mapping
+        datastore: DataStore dependency
 
     Returns:
         SessionResponse with final hand
@@ -209,6 +229,19 @@ def keep_hand(
             cards_to_bottom.append(matching_cards[0])
             # Remove from available cards to avoid duplicates
             hand_cards.remove(matching_cards[0])
+
+        # Auto-record keep decision BEFORE modifying hand
+        decision_data = HandDecisionData(
+            hand_signature=current_hand.get_signature(),
+            hand_display=[card.name for card in current_hand.get_cards()],
+            mulligan_count=simulator.get_mulligan_count(),
+            decision="keep",
+            lands_in_hand=current_hand.count_lands(),
+            on_play=simulator.on_play,
+            timestamp=datetime.now(),
+            deck_id=deck_id,
+        )
+        datastore.save_hand_decision(decision_data)
 
         # Keep hand with bottomed cards
         final_hand = simulator.keep(cards_to_bottom)

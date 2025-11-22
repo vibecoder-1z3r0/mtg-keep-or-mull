@@ -188,7 +188,7 @@ def test_get_deck_statistics_multiple_games(client: TestClient, sample_deck_id: 
     assert response.status_code == 200
 
     data = response.json()
-    assert data["total_games"] == 3  # 1 keep + 1 mull + 1 keep
+    assert data["total_games"] == 2  # 2 completed games (keep decisions only)
     # JSON serializes int keys as strings
     assert data["mulligan_distribution"]["0"] == 1  # 1 hand kept at 7
     assert data["mulligan_distribution"]["1"] == 1  # 1 hand kept at 6

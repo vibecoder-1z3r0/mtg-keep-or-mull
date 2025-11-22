@@ -264,4 +264,147 @@ def test_end_session_not_found(client: TestClient) -> None:
     assert response.status_code == 404
 
 
+# ========== TDD Tests for Automatic Decision Recording ==========
+
+
+def test_mulligan_automatically_records_decision(client: TestClient, sample_deck_id: str) -> None:
+    """Test that calling /mulligan automatically records a 'mull' decision."""
+    # Start session
+    start_response = client.post(
+        "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
+    )
+    session_id = start_response.json()["session_id"]
+    opening_hand_signature = start_response.json()["current_hand"]["signature"]
+
+    # Take mulligan - this should AUTO-RECORD a "mull" decision
+    client.post(f"/api/v1/sessions/{session_id}/mulligan")
+
+    # Verify decision was recorded via statistics endpoint
+    stats_response = client.get("/api/v1/statistics/hands")
+    assert stats_response.status_code == 200
+
+    hands = stats_response.json()["hands"]
+    assert len(hands) == 1
+    assert hands[0]["hand_signature"] == opening_hand_signature
+    assert hands[0]["times_mulled"] == 1
+    assert hands[0]["times_kept"] == 0
+
+
+def test_keep_automatically_records_decision(client: TestClient, sample_deck_id: str) -> None:
+    """Test that calling /keep automatically records a 'keep' decision."""
+    # Start session
+    start_response = client.post(
+        "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": False}
+    )
+    session_id = start_response.json()["session_id"]
+    hand_signature = start_response.json()["current_hand"]["signature"]
+
+    # Keep hand (no mulligans) - this should AUTO-RECORD a "keep" decision
+    client.post(f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": []})
+
+    # Verify decision was recorded
+    stats_response = client.get("/api/v1/statistics/hands")
+    assert stats_response.status_code == 200
+
+    hands = stats_response.json()["hands"]
+    assert len(hands) == 1
+    assert hands[0]["hand_signature"] == hand_signature
+    assert hands[0]["times_kept"] == 1
+    assert hands[0]["times_mulled"] == 0
+
+
+def test_multiple_mulligans_record_each_decision(
+    client: TestClient, sample_deck_id: str
+) -> None:
+    """Test that multiple mulligans each record a decision."""
+    # Start session
+    start_response = client.post(
+        "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
+    )
+    session_id = start_response.json()["session_id"]
+
+    # Mulligan twice
+    client.post(f"/api/v1/sessions/{session_id}/mulligan")
+    mull_response = client.post(f"/api/v1/sessions/{session_id}/mulligan")
+
+    # Remember the 7-card hand signature BEFORE keeping (this is what gets recorded)
+    hand_signature_before_keep = mull_response.json()["current_hand"]["signature"]
+
+    # Keep final hand - get actual cards from the hand to bottom
+    cards_in_hand = mull_response.json()["current_hand"]["cards"]
+    cards_to_bottom = [cards_in_hand[0]["name"], cards_in_hand[1]["name"]]
+
+    client.post(
+        f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": cards_to_bottom}
+    )
+
+    # Verify statistics: should have 3 decisions total (2 mull + 1 keep)
+    stats_response = client.get("/api/v1/statistics/hands")
+    hands = stats_response.json()["hands"]
+
+    # We should have up to 3 different hand signatures (could be fewer if hands repeat)
+    assert stats_response.json()["total"] >= 1
+
+    # Find the kept hand (signature before bottoming)
+    kept_hand_stats = [h for h in hands if h["hand_signature"] == hand_signature_before_keep]
+    assert len(kept_hand_stats) == 1
+    assert kept_hand_stats[0]["times_kept"] == 1
+    assert kept_hand_stats[0]["times_mulled"] == 0  # This particular hand was kept, not mulled
+
+
+def test_keep_after_mulligan_records_decision_with_cards_bottomed(
+    client: TestClient, sample_deck_id: str
+) -> None:
+    """Test that keeping after mulligan records cards_bottomed."""
+    # Start session
+    start_response = client.post(
+        "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
+    )
+    session_id = start_response.json()["session_id"]
+
+    # Mulligan once
+    mull_response = client.post(f"/api/v1/sessions/{session_id}/mulligan")
+    cards_in_hand = mull_response.json()["current_hand"]["cards"]
+    card_to_bottom = cards_in_hand[0]["name"]
+
+    # Keep hand, bottoming 1 card
+    client.post(
+        f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": [card_to_bottom]}
+    )
+
+    # Verify decision was recorded with cards_bottomed
+    # Note: This requires adding cards_bottomed field to HandDecisionData model
+    # For now, we just verify the decision was recorded
+    stats_response = client.get("/api/v1/statistics/hands")
+    assert stats_response.status_code == 200
+    assert stats_response.json()["total"] >= 1
+
+
+def test_deck_statistics_reflect_automatic_decisions(
+    client: TestClient, sample_deck_id: str
+) -> None:
+    """Test that deck statistics correctly reflect automatically recorded decisions."""
+    # Start session
+    start_response = client.post(
+        "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
+    )
+    session_id = start_response.json()["session_id"]
+
+    # Mulligan once, then keep
+    mull_response = client.post(f"/api/v1/sessions/{session_id}/mulligan")
+    card_to_bottom = mull_response.json()["current_hand"]["cards"][0]["name"]
+    client.post(
+        f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": [card_to_bottom]}
+    )
+
+    # Get deck statistics
+    deck_stats_response = client.get(f"/api/v1/statistics/decks/{sample_deck_id}")
+    assert deck_stats_response.status_code == 200
+
+    deck_stats = deck_stats_response.json()
+    assert deck_stats["total_games"] == 1  # One game completed (session ended with keep)
+    assert deck_stats["hands_kept_at_6"] == 1  # Kept after 1 mulligan
+    assert deck_stats["average_mulligan_count"] == 1.0
+
+
 # AIA: Primarily AI, Human-initiated, Reviewed, Claude Code Web [Sonnet 4.5] v1.0

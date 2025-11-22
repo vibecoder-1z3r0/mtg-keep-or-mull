@@ -99,17 +99,17 @@ def get_deck_statistics(
         raise HTTPException(status_code=404, detail=f"No statistics available for deck: {deck_id}")
 
     # Calculate statistics
-    total_games = len(decisions)
+    # Total games = number of completed games (keep decisions only)
+    kept_decisions = [d for d in decisions if d.decision == "keep"]
+    total_games = len(kept_decisions)
 
     # Count mulligan distribution (only count "keep" decisions)
     mulligan_distribution: Dict[int, int] = {}
-    for decision in decisions:
-        if decision.decision == "keep":
-            count = decision.mulligan_count
-            mulligan_distribution[count] = mulligan_distribution.get(count, 0) + 1
+    for decision in kept_decisions:
+        count = decision.mulligan_count
+        mulligan_distribution[count] = mulligan_distribution.get(count, 0) + 1
 
     # Calculate average mulligan count (only from "keep" decisions)
-    kept_decisions = [d for d in decisions if d.decision == "keep"]
     if kept_decisions:
         total_mulligans = sum(d.mulligan_count for d in kept_decisions)
         average_mulligan_count = total_mulligans / len(kept_decisions)
