@@ -356,6 +356,8 @@ def test_keep_after_mulligan_records_decision_with_cards_bottomed(
     client: TestClient, sample_deck_id: str
 ) -> None:
     """Test that keeping after mulligan records cards_bottomed."""
+    from mtg_keep_or_mull.api.dependencies import _datastore
+
     # Start session
     start_response = client.post(
         "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
@@ -373,11 +375,73 @@ def test_keep_after_mulligan_records_decision_with_cards_bottomed(
     )
 
     # Verify decision was recorded with cards_bottomed
-    # Note: This requires adding cards_bottomed field to HandDecisionData model
-    # For now, we just verify the decision was recorded
-    stats_response = client.get("/api/v1/statistics/hands")
-    assert stats_response.status_code == 200
-    assert stats_response.json()["total"] >= 1
+    decisions = _datastore.get_decisions_for_deck(sample_deck_id)
+    keep_decisions = [d for d in decisions if d.decision == "keep"]
+
+    assert len(keep_decisions) == 1
+    assert keep_decisions[0].cards_bottomed is not None
+    assert len(keep_decisions[0].cards_bottomed) == 1
+    assert keep_decisions[0].cards_bottomed[0] == card_to_bottom
+
+
+def test_keep_opening_hand_has_no_cards_bottomed(
+    client: TestClient, sample_deck_id: str
+) -> None:
+    """Test that keeping opening hand (no mulligan) has cards_bottomed=None."""
+    from mtg_keep_or_mull.api.dependencies import _datastore
+
+    # Start session and keep immediately
+    start_response = client.post(
+        "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": False}
+    )
+    session_id = start_response.json()["session_id"]
+
+    # Keep opening 7
+    client.post(f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": []})
+
+    # Verify no cards bottomed
+    decisions = _datastore.get_decisions_for_deck(sample_deck_id)
+    keep_decisions = [d for d in decisions if d.decision == "keep"]
+
+    assert len(keep_decisions) == 1
+    assert keep_decisions[0].mulligan_count == 0
+    # Should be None or empty list since no mulligans
+    assert keep_decisions[0].cards_bottomed in [None, []]
+
+
+def test_keep_after_multiple_mulligans_tracks_all_bottomed_cards(
+    client: TestClient, sample_deck_id: str
+) -> None:
+    """Test that bottoming multiple cards after mull to 5 is tracked correctly."""
+    from mtg_keep_or_mull.api.dependencies import _datastore
+
+    # Start session
+    start_response = client.post(
+        "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
+    )
+    session_id = start_response.json()["session_id"]
+
+    # Mulligan twice
+    client.post(f"/api/v1/sessions/{session_id}/mulligan")
+    mull_response = client.post(f"/api/v1/sessions/{session_id}/mulligan")
+
+    # Bottom 2 cards
+    cards_in_hand = mull_response.json()["current_hand"]["cards"]
+    cards_to_bottom = [cards_in_hand[0]["name"], cards_in_hand[1]["name"]]
+
+    client.post(
+        f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": cards_to_bottom}
+    )
+
+    # Verify both cards were tracked
+    decisions = _datastore.get_decisions_for_deck(sample_deck_id)
+    keep_decisions = [d for d in decisions if d.decision == "keep"]
+
+    assert len(keep_decisions) == 1
+    assert keep_decisions[0].mulligan_count == 2
+    assert keep_decisions[0].cards_bottomed is not None
+    assert len(keep_decisions[0].cards_bottomed) == 2
+    assert set(keep_decisions[0].cards_bottomed) == set(cards_to_bottom)
 
 
 def test_deck_statistics_reflect_automatic_decisions(

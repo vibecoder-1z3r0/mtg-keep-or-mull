@@ -240,6 +240,7 @@ def keep_hand(
             on_play=simulator.on_play,
             timestamp=datetime.now(),
             deck_id=deck_id,
+            cards_bottomed=request.cards_to_bottom if request.cards_to_bottom else None,
         )
         datastore.save_hand_decision(decision_data)
 

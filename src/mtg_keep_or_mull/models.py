@@ -1,7 +1,7 @@
 """Pydantic data models for MTG Keep or Mull."""
 
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -25,6 +25,10 @@ class HandDecisionData(BaseModel):
     on_play: bool = Field(..., description="True if on the play, False if on the draw")
     timestamp: datetime = Field(default_factory=datetime.now, description="When decision was made")
     deck_id: str = Field(..., description="Identifier for the deck being practiced")
+    cards_bottomed: Optional[List[str]] = Field(
+        default=None,
+        description="Cards put on bottom when keeping after mulligan (London Mulligan rule)",
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -39,12 +43,13 @@ class HandDecisionData(BaseModel):
                     "Island",
                     "Lórien Revealed",
                 ],
-                "mulligan_count": 0,
+                "mulligan_count": 1,
                 "decision": "keep",
                 "lands_in_hand": 2,
                 "on_play": True,
                 "timestamp": "2025-11-22T10:30:00",
                 "deck_id": "mono_u_terror",
+                "cards_bottomed": ["Lórien Revealed"],
             }
         }
     )
