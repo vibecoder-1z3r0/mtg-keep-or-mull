@@ -50,6 +50,24 @@ Co-authored-by: Claude (AI Assistant) <claude@anthropic.com>
 Co-authored-by: Vibe-Coder 1.z3r0 <vibecoder.1.z3r0@gmail.com>
 ```
 
+## Magic: The Gathering Fan Content Policy
+
+This project uses Magic: The Gathering intellectual property and must include the following declaration:
+
+### Required Statement
+```
+MTG Keep or Mull is unofficial Fan Content permitted under the Fan Content Policy.
+Not approved/endorsed by Wizards. Portions of the materials used are property of
+Wizards of the Coast. ©Wizards of the Coast LLC.
+```
+
+### Policy Details
+- **Policy URL:** https://company.wizards.com/en/legal/fancontentpolicy
+- This is non-commercial fan content
+- Cannot include verbatim copying of WotC IP (e.g., creating counterfeit/proxy cards)
+- Cannot use WotC patents, game mechanics, logos, or trademarks without permission
+- Must include the required fan content statement in README and documentation
+
 ## Project Details
 
 **Purpose:** (TBD - appears to be MTG mulligan decision helper based on repo name)
