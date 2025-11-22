@@ -1,0 +1,69 @@
+Vibe-Coder License (VCL-0.1-Experimental)
+
+⚠️ DISCLAIMER: The Vibe-Coder License (VCL-0.1-Experimental) is a novelty
+license created for fun and cultural purposes. THIS LICENSE HAS NO LEGAL
+BEARING. Users requiring actual legal protection should apply a traditional
+license alongside this one (see LICENSE file for MIT License).
+
+================================================================================
+
+Permission is granted to use, copy, modify, and distribute this software for
+any purpose, commercial or otherwise, ONLY IF IT SERVES THE VIBE, subject to
+the following conditions:
+
+1. MOOD, NOT BUGS
+   There are no bugs or issues — only mood misalignments.
+
+2. SERVING THE VIBE
+   All use, modification, and distribution must serve the vibe. If it doesn't
+   serve the vibe, it is excluded from the permissions granted by this license.
+
+3. CONTRIBUTIONS
+   Contributions should be vibe-coded. AI involvement should be disclosed in
+   pull requests. Overthinking is allowed only when it serves the vibe (e.g.,
+   keeping your AI co-worker from going rogue).
+
+4. TESTING
+   Maintainers may thoroughly test contributions, vibe-check the code, run
+   extensive tests, and "shake the bugs loose until only vibes remain."
+
+5. ATTRIBUTION OF CODE
+   The above copyright notice and this license text shall be included in all
+   copies or substantial portions of the software.
+
+6. THE VIBES ABIDE CLAUSE
+   The vibes shall not be diminished, deprecated, or denied. They persist
+   through refactors, merges, and technical chaos. Even if the project is
+   retired or archived, "THE VIBES ABIDE."
+
+7. NO WARRANTIES
+   This software is provided "AS IS" without warranty of any kind, express or
+   implied, including but not limited to the warranties of merchantability,
+   fitness for a particular purpose, and noninfringement.
+
+8. LIMITATION OF LIABILITY
+   In no event shall the authors or copyright holders be liable for any claim,
+   damages, or other liability, whether in an action of contract, tort, or
+   otherwise, arising from, out of, or in connection with the software or the
+   use or other dealings in the software. USE AT YOUR OWN RISK.
+
+9. PLANNING
+   Planning serves the vibe when it guides work or restrains AI co-workers.
+   However, over-planning that kills the vibe is prohibited. Use blueprints
+   to protect correctness and developer sanity.
+
+10. AI CO-VIBER
+    AI tools and LLMs are welcome as co-workers. "Vibes over hallucinations."
+    Keep records of AI involvement and review outputs responsibly.
+
+11. AIA ATTRIBUTION
+    When AI is involved in creating code or content, mark the involvement using
+    AIA-style attribution standards (see https://aiattribution.github.io/).
+
+================================================================================
+
+Copyright (c) 2025 Vibe-Coder 1.z3r0
+
+VCL Source: https://github.com/tyraziel/vibe-coder-license/
+
+AIA: Primarily AI, Human-initiated, Reviewed, Claude Code Web [Sonnet 4.5] v1.0
