@@ -6,6 +6,60 @@ This document tracks feature enhancements, open design questions, and future dev
 
 ---
 
+## 🐛 Bugs & Issues
+
+### Automatic Decision Recording
+
+**Status:** Identified during testing - Needs Fix
+**Priority:** Critical
+**Complexity:** Low
+
+**Issue:**
+The `/sessions/{id}/keep` and `/sessions/{id}/mulligan` endpoints modify session state but **do not automatically record decisions** to the datastore. Users must manually call `/sessions/{id}/decision` separately, which is:
+- Easy to forget
+- Results in no statistics being collected
+- Poor UX (duplicative API calls)
+- Not discoverable from API design
+
+**Current Behavior:**
+```
+1. POST /sessions/{id}/mulligan  → Takes action, NO statistics recorded
+2. POST /sessions/{id}/decision {"decision": "mull"}  → Must call separately
+3. POST /sessions/{id}/mulligan  → Takes action, NO statistics recorded
+4. POST /sessions/{id}/decision {"decision": "mull"}  → Must call separately
+5. POST /sessions/{id}/keep  → Takes action, NO statistics recorded
+6. POST /sessions/{id}/decision {"decision": "keep"}  → Must call separately
+```
+
+**Expected Behavior:**
+```
+1. POST /sessions/{id}/mulligan  → Takes action + auto-records "mull" decision
+2. POST /sessions/{id}/mulligan  → Takes action + auto-records "mull" decision
+3. POST /sessions/{id}/keep  → Takes action + auto-records "keep" decision
+```
+
+**Root Cause:**
+Missing tests! We should have had integration tests verifying that:
+- Calling `/mulligan` records a decision with `decision="mull"`
+- Calling `/keep` records a decision with `decision="keep"`
+- Decisions are queryable via statistics endpoints
+
+**Fix Implementation (TDD):**
+1. **Write failing tests** that verify automatic decision recording
+2. **Inject datastore** dependency into `/keep` and `/mulligan` endpoints
+3. **Auto-record decisions** when actions are taken
+4. **Track cards_bottomed** automatically (enables Feature #3)
+5. **Tests pass** ✓
+
+**Impact of Fix:**
+- ✓ Simpler API workflow
+- ✓ Can't forget to record statistics
+- ✓ Enables automatic cards_bottomed tracking
+- ✓ Better user experience
+- ? Keep `/decision` endpoint for retroactive/manual recording or remove?
+
+---
+
 ## 🚀 Planned Features
 
 ### 1. Decision Reasoning Tracking
