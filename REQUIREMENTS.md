@@ -49,26 +49,31 @@ Draw 7 → Mulligan → Draw 7 → Mulligan → Draw 7 → Keep → Bottom 2 car
 ### 2. Deck Management
 
 **Deck Class:**
-- Load deck from simple text file
-- Parse deck list format: One card per line (repeat for each copy)
-- Store deck as list of Card objects
+- Load deck from MTGO-format text file
+- Parse deck list format: `<quantity> <card name>` per line
+- Parse sideboard (store but don't use in MVP)
+- Store main deck as list of Card objects (quantity expanded)
 - Shuffle deck (randomize order)
 - Draw N cards from top
 - Return cards to deck
 
-**Deck List Format (Simple):**
+**Deck List Format (MTGO-style):**
 ```
-Lightning Bolt
-Lightning Bolt
-Lightning Bolt
-Lightning Bolt
-Monastery Swiftspear
-Monastery Swiftspear
-Monastery Swiftspear
-Mountain
-Mountain
-...
+4 Lightning Bolt
+3 Monastery Swiftspear
+20 Mountain
+
+SIDEBOARD:
+3 Pyroblast
+2 Smash to Smithereens
 ```
+
+**Parsing Behavior:**
+- Lines before "SIDEBOARD:" → main deck (expanded by quantity)
+- Lines after "SIDEBOARD:" → sideboard (stored, not used in MVP)
+- Empty lines and "SIDEBOARD:" line are ignored
+- Each card is expanded: `4 Lightning Bolt` → 4 Card objects
+
 *(Note: No validation of card names against MTG database in MVP - deferred to future session)*
 
 **Methods:**

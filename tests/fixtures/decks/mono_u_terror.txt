@@ -1,0 +1,22 @@
+4 Brainstorm
+3 Consider
+4 Counterspell
+4 Cryptic Serpent
+3 Deep Analysis
+4 Delver of Secrets
+16 Island
+4 Lórien Revealed
+1 Lose Focus
+3 Mental Note
+2 Murmuring Mystic
+3 Snap
+2 Spell Pierce
+3 Thought Scour
+4 Tolarian Terror
+
+SIDEBOARD:
+4 Annul
+2 Echoing Truth
+4 Hydroblast
+4 Prohibit
+1 Utter Insignificance
