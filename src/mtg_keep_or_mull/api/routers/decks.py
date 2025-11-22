@@ -1,7 +1,7 @@
 """Deck management API endpoints."""
 
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -46,6 +46,8 @@ def upload_deck(
             main_deck=[card.name for card in deck._cards],
             sideboard=[card.name for card in deck.sideboard],
             total_games=0,
+            format=request.format,
+            archetype=request.archetype,
         )
 
         # Save to datastore
@@ -58,6 +60,8 @@ def upload_deck(
             main_deck_size=len(deck._cards),
             sideboard_size=len(deck.sideboard),
             created_at=datetime.now(),
+            format=request.format,
+            archetype=request.archetype,
         )
 
     except Exception as e:
@@ -65,16 +69,23 @@ def upload_deck(
 
 
 @router.get("", response_model=DeckListResponse)
-def list_decks(datastore: DataStore = Depends(get_datastore)) -> DeckListResponse:
-    """List all available decks.
+def list_decks(
+    format: Optional[str] = None,
+    archetype: Optional[str] = None,
+    datastore: DataStore = Depends(get_datastore),
+) -> DeckListResponse:
+    """List all available decks, optionally filtered by format and/or archetype.
 
     Args:
+        format: Optional format filter (e.g., "Pauper", "Modern")
+        archetype: Optional archetype filter (e.g., "Aggro", "Control")
         datastore: DataStore dependency
 
     Returns:
-        DeckListResponse with list of all decks
+        DeckListResponse with list of matching decks
     """
-    deck_ids = datastore.list_decks()
+    # Use filtered list if filters provided, otherwise list all
+    deck_ids = datastore.list_decks_filtered(format=format, archetype=archetype)
     decks: List[DeckResponse] = []
 
     for deck_id in deck_ids:
@@ -87,10 +98,55 @@ def list_decks(datastore: DataStore = Depends(get_datastore)) -> DeckListRespons
                     main_deck_size=len(deck_data.main_deck),
                     sideboard_size=len(deck_data.sideboard),
                     created_at=datetime.now(),  # TODO: Store creation time in DeckData
+                    format=deck_data.format,
+                    archetype=deck_data.archetype,
                 )
             )
 
     return DeckListResponse(decks=decks, total=len(decks))
+
+
+@router.get("/random", response_model=DeckResponse)
+def get_random_deck(
+    format: Optional[str] = None,
+    archetype: Optional[str] = None,
+    datastore: DataStore = Depends(get_datastore),
+) -> DeckResponse:
+    """Get a random deck, optionally filtered by format and/or archetype.
+
+    Args:
+        format: Optional format filter (e.g., "Pauper", "Modern")
+        archetype: Optional archetype filter (e.g., "Aggro", "Control")
+        datastore: DataStore dependency
+
+    Returns:
+        DeckResponse for a random matching deck
+
+    Raises:
+        HTTPException: If no decks match the filters
+    """
+    deck_data = datastore.get_random_deck(format=format, archetype=archetype)
+
+    if not deck_data:
+        filter_msg = []
+        if format:
+            filter_msg.append(f"format={format}")
+        if archetype:
+            filter_msg.append(f"archetype={archetype}")
+        filter_str = " and ".join(filter_msg) if filter_msg else "any criteria"
+        raise HTTPException(
+            status_code=404, detail=f"No decks available matching {filter_str}"
+        )
+
+    return DeckResponse(
+        deck_id=deck_data.deck_id,
+        deck_name=deck_data.deck_name,
+        main_deck_size=len(deck_data.main_deck),
+        sideboard_size=len(deck_data.sideboard),
+        created_at=datetime.now(),
+        format=deck_data.format,
+        archetype=deck_data.archetype,
+    )
 
 
 @router.get("/{deck_id}", response_model=DeckResponse)
@@ -117,6 +173,8 @@ def get_deck(deck_id: str, datastore: DataStore = Depends(get_datastore)) -> Dec
         main_deck_size=len(deck_data.main_deck),
         sideboard_size=len(deck_data.sideboard),
         created_at=datetime.now(),  # TODO: Store creation time in DeckData
+        format=deck_data.format,
+        archetype=deck_data.archetype,
     )
 
 

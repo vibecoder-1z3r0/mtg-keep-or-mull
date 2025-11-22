@@ -14,12 +14,16 @@ class DeckUploadRequest(BaseModel):
 
     deck_text: str = Field(..., description="MTGO-format deck list text")
     deck_name: str = Field("", description="Optional human-readable deck name")
+    format: str = Field("Unknown", description="MTG format (e.g., Pauper, Modern, Standard)")
+    archetype: str = Field("Unknown", description="Deck archetype (e.g., Aggro, Control, Combo)")
 
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
                 "deck_text": "4 Lightning Bolt\n20 Mountain\n\nSIDEBOARD:\n3 Pyroblast",
                 "deck_name": "Red Deck Wins",
+                "format": "Modern",
+                "archetype": "Aggro",
             }
         }
     )
@@ -33,6 +37,8 @@ class DeckResponse(BaseModel):
     main_deck_size: int = Field(..., description="Number of cards in main deck")
     sideboard_size: int = Field(..., description="Number of cards in sideboard")
     created_at: datetime = Field(..., description="When the deck was created")
+    format: str = Field("Unknown", description="MTG format (e.g., Pauper, Modern, Standard)")
+    archetype: str = Field("Unknown", description="Deck archetype (e.g., Aggro, Control, Combo)")
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -42,6 +48,8 @@ class DeckResponse(BaseModel):
                 "main_deck_size": 60,
                 "sideboard_size": 15,
                 "created_at": "2025-11-22T10:30:00",
+                "format": "Pauper",
+                "archetype": "Tempo",
             }
         }
     )

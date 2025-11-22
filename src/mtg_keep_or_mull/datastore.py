@@ -423,6 +423,50 @@ class JSONDataStore:
 
         return all_stats
 
+    def list_decks_filtered(
+        self, format: Optional[str] = None, archetype: Optional[str] = None
+    ) -> List[str]:
+        """List deck IDs filtered by format and/or archetype."""
+        all_deck_ids = self.list_decks()
+        filtered_ids = []
+
+        for deck_id in all_deck_ids:
+            deck = self.load_deck(deck_id)
+            if not deck:
+                continue
+
+            # If no filters provided, include all decks
+            if format is None and archetype is None:
+                filtered_ids.append(deck_id)
+                continue
+
+            # Check format filter
+            if format is not None and deck.format != format:
+                continue
+
+            # Check archetype filter
+            if archetype is not None and deck.archetype != archetype:
+                continue
+
+            # Deck passed all filters
+            filtered_ids.append(deck_id)
+
+        return filtered_ids
+
+    def get_random_deck(
+        self, format: Optional[str] = None, archetype: Optional[str] = None
+    ) -> Optional[DeckData]:
+        """Get a random deck, optionally filtered by format and/or archetype."""
+        import random
+
+        matching_deck_ids = self.list_decks_filtered(format=format, archetype=archetype)
+
+        if not matching_deck_ids:
+            return None
+
+        random_deck_id = random.choice(matching_deck_ids)
+        return self.load_deck(random_deck_id)
+
 
 class SQLiteDataStore:
     """SQLite database implementation of DataStore.
@@ -469,7 +513,9 @@ class SQLiteDataStore:
                 deck_name TEXT NOT NULL DEFAULT '',
                 main_deck TEXT NOT NULL,
                 sideboard TEXT NOT NULL,
-                total_games INTEGER NOT NULL DEFAULT 0
+                total_games INTEGER NOT NULL DEFAULT 0,
+                format TEXT NOT NULL DEFAULT 'Unknown',
+                archetype TEXT NOT NULL DEFAULT 'Unknown'
             )
         """
         )
@@ -536,10 +582,18 @@ class SQLiteDataStore:
         # Insert or replace deck
         cursor.execute(
             """
-            INSERT OR REPLACE INTO decks (deck_id, deck_name, main_deck, sideboard, total_games)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO decks (deck_id, deck_name, main_deck, sideboard, total_games, format, archetype)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
-            (deck.deck_id, deck.deck_name, main_deck_json, sideboard_json, deck.total_games),
+            (
+                deck.deck_id,
+                deck.deck_name,
+                main_deck_json,
+                sideboard_json,
+                deck.total_games,
+                deck.format,
+                deck.archetype,
+            ),
         )
 
         conn.commit()
@@ -561,7 +615,7 @@ class SQLiteDataStore:
 
         cursor.execute(
             """
-            SELECT deck_id, deck_name, main_deck, sideboard, total_games
+            SELECT deck_id, deck_name, main_deck, sideboard, total_games, format, archetype
             FROM decks
             WHERE deck_id = ?
         """,
@@ -580,6 +634,8 @@ class SQLiteDataStore:
             main_deck=json.loads(row["main_deck"]),
             sideboard=json.loads(row["sideboard"]),
             total_games=row["total_games"],
+            format=row["format"],
+            archetype=row["archetype"],
         )
 
     def list_decks(self) -> List[str]:
@@ -1460,6 +1516,84 @@ class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
             all_stats.append(stats)
 
         return all_stats
+
+    def list_decks_filtered(
+        self, format: Optional[str] = None, archetype: Optional[str] = None
+    ) -> List[str]:
+        """List deck IDs filtered by format and/or archetype.
+
+        Uses SQL WHERE clauses for efficient filtering.
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        # Build SQL query with optional WHERE clauses
+        query = "SELECT deck_id FROM decks"
+        params: list = []
+        where_clauses = []
+
+        if format is not None:
+            where_clauses.append("format = ?")
+            params.append(format)
+
+        if archetype is not None:
+            where_clauses.append("archetype = ?")
+            params.append(archetype)
+
+        if where_clauses:
+            query += " WHERE " + " AND ".join(where_clauses)
+
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        conn.close()
+
+        return [row["deck_id"] for row in rows]
+
+    def get_random_deck(
+        self, format: Optional[str] = None, archetype: Optional[str] = None
+    ) -> Optional[DeckData]:
+        """Get a random deck, optionally filtered by format and/or archetype.
+
+        Uses SQL ORDER BY RANDOM() for efficient random selection.
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        # Build SQL query with optional WHERE clauses and LIMIT 1
+        query = "SELECT deck_id, deck_name, main_deck, sideboard, total_games, format, archetype FROM decks"
+        params: list = []
+        where_clauses = []
+
+        if format is not None:
+            where_clauses.append("format = ?")
+            params.append(format)
+
+        if archetype is not None:
+            where_clauses.append("archetype = ?")
+            params.append(archetype)
+
+        if where_clauses:
+            query += " WHERE " + " AND ".join(where_clauses)
+
+        # Use SQLite's RANDOM() for efficient random selection
+        query += " ORDER BY RANDOM() LIMIT 1"
+
+        cursor.execute(query, params)
+        row = cursor.fetchone()
+        conn.close()
+
+        if row is None:
+            return None
+
+        return DeckData(
+            deck_id=row["deck_id"],
+            deck_name=row["deck_name"],
+            main_deck=json.loads(row["main_deck"]),
+            sideboard=json.loads(row["sideboard"]),
+            total_games=row["total_games"],
+            format=row["format"],
+            archetype=row["archetype"],
+        )
 
 
 # AIA: Primarily AI, Human-initiated, Reviewed, Claude Code Web [Sonnet 4.5] v1.0
