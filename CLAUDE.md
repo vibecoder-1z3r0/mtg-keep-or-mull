@@ -70,18 +70,41 @@ Wizards of the Coast. ©Wizards of the Coast LLC.
 
 ## Project Details
 
-**Purpose:** (TBD - appears to be MTG mulligan decision helper based on repo name)
-**Tech Stack:** (TBD)
+### Purpose
+MTG mulligan decision helper - helps players analyze opening hands and make keep/mulligan decisions.
+
+### Tech Stack
+
+**Language:** Python
+- **Version Matrix:** 3.10, 3.11, 3.12, 3.13
+- Minimum: Python 3.10 (3.9 reached EOL October 2025)
+- Maximum: Python 3.13 (3.14 too new for production)
+
+**Development Approach:**
+- **Test-Driven Development (TDD)** - Red-Green-Refactor cycle
+- **Coverage Target:** 80% minimum code coverage
+- Write tests first → Show they fail (Red) → Implement → Fix until passing (Green) → Refactor
+
+**Testing & Quality Tools:**
+- **Testing:** `pytest` + `pytest-cov` (coverage reporting)
+- **Formatting:** `black` (auto-formatter)
+- **Linting:** `flake8` + `pylint`
+- **Type Checking:** `mypy` (static type analysis)
+- **Pre-commit Hooks:** Auto-run linting/formatting before commits
+
 **License Structure Preference:** (TBD - separate files vs combined)
 
 ## Next Steps
 
-1. Determine project scope and purpose
-2. Choose tech stack
-3. Finalize dual licensing structure
-4. Add VCL license file
-5. Create README with AI Attribution
-6. Begin implementation
+1. ✅ ~~Determine project scope and purpose~~ (MTG mulligan helper)
+2. ✅ ~~Choose tech stack~~ (Python 3.10-3.13, TDD, pytest, etc.)
+3. Define detailed application requirements and features
+4. Finalize dual licensing structure (separate LICENSE-MIT and LICENSE-VCL files?)
+5. Set up Python project structure (pyproject.toml, src/, tests/)
+6. Configure testing and linting tools
+7. Add VCL license file
+8. Create README with all attributions
+9. Begin TDD implementation
 
 ---
 
