@@ -26,6 +26,8 @@ classifiers = [
 
 dependencies = [
     "pydantic>=2.0.0",
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
 ]
 
 [project.optional-dependencies]
@@ -37,6 +39,9 @@ dev = [
     "pylint>=3.0.0",
     "mypy>=1.5.0",
     "pre-commit>=3.3.0",
+    "httpx>=0.25.0",  # For testing FastAPI endpoints
+    "openapi-spec-validator>=0.7.0",  # For validating OpenAPI specs
+    "schemathesis>=3.27.0",  # For contract testing against OpenAPI spec
 ]
 # Database backend dependencies (optional - install as needed)
 postgres = [
@@ -119,13 +124,14 @@ module = "pydantic"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = "pytest"
+module = ["fastapi", "fastapi.*", "pytest", "openapi_spec_validator", "openapi_spec_validator.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
+
 
 # Pylint configuration
 [tool.pylint.main]
@@ -143,6 +149,7 @@ disable = [
     "unnecessary-ellipsis",
     "line-too-long",  # black handles line length
     "protected-access",  # tests need to access internal state
+    "fixme",  # TODO comments are acceptable
     "duplicate-code",  # acceptable in tests for setup/fixture code
     "import-error",  # optional dependencies (pytest, psycopg2, mysql) may not be installed
     "import-outside-toplevel",  # lazy imports for optional dependencies

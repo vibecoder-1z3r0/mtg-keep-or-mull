@@ -23,11 +23,16 @@ This work was primarily AI-generated. AI was prompted for its contributions, or 
 
 ## 🎯 Project Status
 
-**Current Phase:** Business Logic Layer (MVP)
+**Current Phase:** REST API Layer
 
-This repository contains the core business logic for mulligan simulation. Future sessions will add:
+This repository contains:
+- ✅ Core business logic for mulligan simulation
+- ✅ REST API with FastAPI
+- ✅ OpenAPI 3.x specification
+- ✅ Comprehensive test suite (96%+ coverage)
+
+Future sessions will add:
 - CLI interface
-- REST API
 - Database persistence (SQLite/PostgreSQL)
 - Text User Interface (TUI)
 - Sideboarding support (Games 2-3)
@@ -51,6 +56,16 @@ Implements current competitive mulligan rules:
 - **MulliganSimulator**: Orchestrates the London Mulligan process
 - **DataStore**: Abstract storage interface with mock implementation
 - **Pydantic Models**: Validated data structures for decisions and statistics
+
+### REST API
+
+- **FastAPI-based**: Modern, async-ready API framework
+- **OpenAPI 3.x**: Auto-generated interactive documentation
+- **Endpoints**: Deck management, practice sessions, statistics
+- **Session-based**: UUID-tracked mulligan practice sessions
+- **Validated**: All requests/responses validated with Pydantic models
+
+See [API.md](API.md) for complete API documentation.
 
 ### Hand Normalization
 
