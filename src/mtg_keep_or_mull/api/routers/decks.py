@@ -61,7 +61,7 @@ def upload_deck(
         )
 
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to parse deck: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Failed to parse deck: {str(e)}") from e
 
 
 @router.get("", response_model=DeckListResponse)

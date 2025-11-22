@@ -15,8 +15,8 @@ def client() -> TestClient:
         TestClient instance
     """
     # Clear state before each test
-    _datastore._decks.clear()
-    _datastore._decisions.clear()
+    _datastore._decks.clear()  # type: ignore[attr-defined]
+    _datastore._decisions.clear()  # type: ignore[attr-defined]
     _sessions.clear()
     _session_decks.clear()
     return TestClient(app)
@@ -37,7 +37,8 @@ def sample_deck_id(client: TestClient) -> str:
 20 Island
 """
     response = client.post("/api/v1/decks", json={"deck_text": deck_text, "deck_name": "Test Deck"})
-    return response.json()["deck_id"]
+    deck_id: str = response.json()["deck_id"]
+    return deck_id
 
 
 def test_get_all_hand_statistics_empty(client: TestClient) -> None:

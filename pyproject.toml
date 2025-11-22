@@ -111,6 +111,10 @@ files = ["src", "tests"]
 module = "pydantic"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["fastapi", "fastapi.*", "pytest", "openapi_spec_validator", "openapi_spec_validator.*"]
+ignore_missing_imports = true
+
 # Pylint configuration
 [tool.pylint.main]
 py-version = "3.10"
@@ -127,6 +131,7 @@ disable = [
     "unnecessary-ellipsis",
     "line-too-long",  # black handles line length
     "protected-access",  # tests need to access internal state
+    "fixme",  # TODO comments are acceptable
 ]
 
 [tool.pylint.imports]

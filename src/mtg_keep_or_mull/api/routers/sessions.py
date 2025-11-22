@@ -22,13 +22,14 @@ from mtg_keep_or_mull.api.models import (
 from mtg_keep_or_mull.card import Card
 from mtg_keep_or_mull.datastore import DataStore
 from mtg_keep_or_mull.deck import Deck
+from mtg_keep_or_mull.hand import Hand
 from mtg_keep_or_mull.models import HandDecisionData
 from mtg_keep_or_mull.mulligan import MulliganSimulator
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
 
-def _hand_to_response(hand) -> HandResponse:
+def _hand_to_response(hand: Hand) -> HandResponse:
     """Convert a Hand object to HandResponse.
 
     Args:
@@ -221,7 +222,7 @@ def keep_hand(
         )
 
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/{session_id}/decision", status_code=201)
