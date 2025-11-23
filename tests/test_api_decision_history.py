@@ -37,9 +37,7 @@ def sample_deck_id(client: TestClient) -> str:
 4 Mental Note
 20 Island
 """
-    response = client.post(
-        "/api/v1/decks", json={"deck_text": deck_text, "deck_name": "Test Deck"}
-    )
+    response = client.post("/api/v1/decks", json={"deck_text": deck_text, "deck_name": "Test Deck"})
     deck_id: str = response.json()["deck_id"]
     return deck_id
 
@@ -99,7 +97,9 @@ def test_get_decisions_filtered_by_deck(client: TestClient, sample_deck_id: str)
 
     # Make decisions for deck 1
     session1 = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})
-    client.post(f"/api/v1/sessions/{session1.json()['session_id']}/keep", json={"cards_to_bottom": []})
+    client.post(
+        f"/api/v1/sessions/{session1.json()['session_id']}/keep", json={"cards_to_bottom": []}
+    )
 
     # Make decisions for deck 2
     session2 = client.post("/api/v1/sessions", json={"deck_id": deck2_id, "on_play": False})
@@ -165,7 +165,9 @@ def test_get_decisions_pagination(client: TestClient, sample_deck_id: str) -> No
     # Create 15 decisions
     for _ in range(15):
         session = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})
-        client.post(f"/api/v1/sessions/{session.json()['session_id']}/keep", json={"cards_to_bottom": []})
+        client.post(
+            f"/api/v1/sessions/{session.json()['session_id']}/keep", json={"cards_to_bottom": []}
+        )
 
     # Get first page
     response = client.get("/api/v1/decisions?limit=10")

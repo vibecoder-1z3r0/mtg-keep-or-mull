@@ -313,9 +313,7 @@ def test_keep_automatically_records_decision(client: TestClient, sample_deck_id:
     assert hands[0]["times_mulled"] == 0
 
 
-def test_multiple_mulligans_record_each_decision(
-    client: TestClient, sample_deck_id: str
-) -> None:
+def test_multiple_mulligans_record_each_decision(client: TestClient, sample_deck_id: str) -> None:
     """Test that multiple mulligans each record a decision."""
     # Start session
     start_response = client.post(
@@ -334,9 +332,7 @@ def test_multiple_mulligans_record_each_decision(
     cards_in_hand = mull_response.json()["current_hand"]["cards"]
     cards_to_bottom = [cards_in_hand[0]["name"], cards_in_hand[1]["name"]]
 
-    client.post(
-        f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": cards_to_bottom}
-    )
+    client.post(f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": cards_to_bottom})
 
     # Verify statistics: should have 3 decisions total (2 mull + 1 keep)
     stats_response = client.get("/api/v1/statistics/hands")
@@ -370,9 +366,7 @@ def test_keep_after_mulligan_records_decision_with_cards_bottomed(
     card_to_bottom = cards_in_hand[0]["name"]
 
     # Keep hand, bottoming 1 card
-    client.post(
-        f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": [card_to_bottom]}
-    )
+    client.post(f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": [card_to_bottom]})
 
     # Verify decision was recorded with cards_bottomed
     decisions = _datastore.get_decisions_for_deck(sample_deck_id)
@@ -384,9 +378,7 @@ def test_keep_after_mulligan_records_decision_with_cards_bottomed(
     assert keep_decisions[0].cards_bottomed[0] == card_to_bottom
 
 
-def test_keep_opening_hand_has_no_cards_bottomed(
-    client: TestClient, sample_deck_id: str
-) -> None:
+def test_keep_opening_hand_has_no_cards_bottomed(client: TestClient, sample_deck_id: str) -> None:
     """Test that keeping opening hand (no mulligan) has cards_bottomed=None."""
     from mtg_keep_or_mull.api.dependencies import _datastore
 
@@ -429,9 +421,7 @@ def test_keep_after_multiple_mulligans_tracks_all_bottomed_cards(
     cards_in_hand = mull_response.json()["current_hand"]["cards"]
     cards_to_bottom = [cards_in_hand[0]["name"], cards_in_hand[1]["name"]]
 
-    client.post(
-        f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": cards_to_bottom}
-    )
+    client.post(f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": cards_to_bottom})
 
     # Verify both cards were tracked
     decisions = _datastore.get_decisions_for_deck(sample_deck_id)
@@ -457,9 +447,7 @@ def test_deck_statistics_reflect_automatic_decisions(
     # Mulligan once, then keep
     mull_response = client.post(f"/api/v1/sessions/{session_id}/mulligan")
     card_to_bottom = mull_response.json()["current_hand"]["cards"][0]["name"]
-    client.post(
-        f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": [card_to_bottom]}
-    )
+    client.post(f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": [card_to_bottom]})
 
     # Get deck statistics
     deck_stats_response = client.get(f"/api/v1/statistics/decks/{sample_deck_id}")

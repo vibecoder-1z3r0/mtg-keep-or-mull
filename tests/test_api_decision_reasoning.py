@@ -37,16 +37,12 @@ def sample_deck_id(client: TestClient) -> str:
 4 Mental Note
 20 Island
 """
-    response = client.post(
-        "/api/v1/decks", json={"deck_text": deck_text, "deck_name": "Test Deck"}
-    )
+    response = client.post("/api/v1/decks", json={"deck_text": deck_text, "deck_name": "Test Deck"})
     deck_id: str = response.json()["deck_id"]
     return deck_id
 
 
-def test_decision_with_reason_via_manual_endpoint(
-    client: TestClient, sample_deck_id: str
-) -> None:
+def test_decision_with_reason_via_manual_endpoint(client: TestClient, sample_deck_id: str) -> None:
     """Test that a decision can be recorded with a reason via the manual decision endpoint."""
     # Create session
     session = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})
@@ -65,9 +61,7 @@ def test_decision_with_reason_via_manual_endpoint(
     assert decisions[0]["reason"] == "Only 1 land, no action"
 
 
-def test_decision_with_reason_via_keep_endpoint(
-    client: TestClient, sample_deck_id: str
-) -> None:
+def test_decision_with_reason_via_keep_endpoint(client: TestClient, sample_deck_id: str) -> None:
     """Test that the /keep endpoint can accept and store a reason."""
     # Create session
     session = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})
@@ -109,18 +103,14 @@ def test_decision_with_reason_via_mulligan_endpoint(
     assert decisions[0]["reason"] == "Too many lands, not enough spells"
 
 
-def test_decision_without_reason_defaults_to_none(
-    client: TestClient, sample_deck_id: str
-) -> None:
+def test_decision_without_reason_defaults_to_none(client: TestClient, sample_deck_id: str) -> None:
     """Test that reason is optional and defaults to None."""
     # Create session
     session = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})
     session_id = session.json()["session_id"]
 
     # Keep without providing reason
-    response = client.post(
-        f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": []}
-    )
+    response = client.post(f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": []})
     assert response.status_code == 200
 
     # Get decision history and verify reason is None
@@ -129,9 +119,7 @@ def test_decision_without_reason_defaults_to_none(
     assert decisions[0]["reason"] is None
 
 
-def test_decision_history_includes_reason_field(
-    client: TestClient, sample_deck_id: str
-) -> None:
+def test_decision_history_includes_reason_field(client: TestClient, sample_deck_id: str) -> None:
     """Test that decision history responses include the reason field."""
     # Create session
     session = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})

@@ -210,9 +210,7 @@ class TestDataStoreFiltering:
     ) -> None:
         """Test filtering by multiple criteria (AND logic)."""
         # Pauper + Aggro
-        pauper_aggro = datastore_with_decks.list_decks_filtered(
-            format="Pauper", archetype="Aggro"
-        )
+        pauper_aggro = datastore_with_decks.list_decks_filtered(format="Pauper", archetype="Aggro")
         assert len(pauper_aggro) == 2  # elves, burn
         assert "pauper_elves" in pauper_aggro
         assert "pauper_burn" in pauper_aggro
@@ -224,9 +222,7 @@ class TestDataStoreFiltering:
         assert "grixis_storm" in modern_combo
 
         # Pauper + Tempo
-        pauper_tempo = datastore_with_decks.list_decks_filtered(
-            format="Pauper", archetype="Tempo"
-        )
+        pauper_tempo = datastore_with_decks.list_decks_filtered(format="Pauper", archetype="Tempo")
         assert len(pauper_tempo) == 1
         assert "mono_u_terror" in pauper_tempo
 
@@ -241,9 +237,7 @@ class TestDataStoreFiltering:
         assert len(combo_storm) == 1
         assert "grixis_storm" in combo_storm
 
-    def test_list_decks_filtered_all_criteria(
-        self, datastore_with_decks: MockDataStore
-    ) -> None:
+    def test_list_decks_filtered_all_criteria(self, datastore_with_decks: MockDataStore) -> None:
         """Test filtering by all four criteria simultaneously."""
         # Very specific filter
         result = datastore_with_decks.list_decks_filtered(
@@ -288,9 +282,7 @@ class TestDataStoreFiltering:
             "grixis_storm",
         ]
 
-    def test_get_random_deck_filtered_by_format(
-        self, datastore_with_decks: MockDataStore
-    ) -> None:
+    def test_get_random_deck_filtered_by_format(self, datastore_with_decks: MockDataStore) -> None:
         """Test getting a random deck filtered by format."""
         # Get multiple random decks to verify they're all from correct format
         pauper_decks_found = set()
@@ -321,9 +313,7 @@ class TestDataStoreFiltering:
         assert "pauper_burn" in aggro_decks_found
         assert "modern_burn" in aggro_decks_found
 
-    def test_get_random_deck_filtered_by_colors(
-        self, datastore_with_decks: MockDataStore
-    ) -> None:
+    def test_get_random_deck_filtered_by_colors(self, datastore_with_decks: MockDataStore) -> None:
         """Test getting a random deck filtered by colors."""
         # Get blue decks
         blue_decks_found = set()
@@ -336,9 +326,7 @@ class TestDataStoreFiltering:
         # Should find multiple blue decks
         assert len(blue_decks_found) >= 2
 
-    def test_get_random_deck_filtered_by_tags(
-        self, datastore_with_decks: MockDataStore
-    ) -> None:
+    def test_get_random_deck_filtered_by_tags(self, datastore_with_decks: MockDataStore) -> None:
         """Test getting a random deck filtered by tags."""
         # Get permission decks
         for _ in range(10):

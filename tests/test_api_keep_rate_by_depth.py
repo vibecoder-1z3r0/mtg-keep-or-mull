@@ -37,34 +37,24 @@ def sample_deck_id(client: TestClient) -> str:
 4 Mental Note
 20 Island
 """
-    response = client.post(
-        "/api/v1/decks", json={"deck_text": deck_text, "deck_name": "Test Deck"}
-    )
+    response = client.post("/api/v1/decks", json={"deck_text": deck_text, "deck_name": "Test Deck"})
     deck_id: str = response.json()["deck_id"]
     return deck_id
 
 
-def test_deck_stats_includes_keep_rate_by_depth(
-    client: TestClient, sample_deck_id: str
-) -> None:
+def test_deck_stats_includes_keep_rate_by_depth(client: TestClient, sample_deck_id: str) -> None:
     """Test that deck statistics include keep_rate_by_mulligan_count."""
     # Play several games with different mulligan depths
     # Game 1: Keep opening 7
-    session1 = client.post(
-        "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
-    )
+    session1 = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})
     client.post(
         f"/api/v1/sessions/{session1.json()['session_id']}/keep",
         json={"cards_to_bottom": []},
     )
 
     # Game 2: Mull to 6, then keep
-    session2 = client.post(
-        "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
-    )
-    mull_response = client.post(
-        f"/api/v1/sessions/{session2.json()['session_id']}/mulligan"
-    )
+    session2 = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})
+    mull_response = client.post(f"/api/v1/sessions/{session2.json()['session_id']}/mulligan")
     card_to_bottom = mull_response.json()["current_hand"]["cards"][0]["name"]
     client.post(
         f"/api/v1/sessions/{session2.json()['session_id']}/keep",
@@ -80,29 +70,21 @@ def test_deck_stats_includes_keep_rate_by_depth(
     assert isinstance(stats["keep_rate_by_mulligan_count"], dict)
 
 
-def test_keep_rate_by_depth_calculates_correctly(
-    client: TestClient, sample_deck_id: str
-) -> None:
+def test_keep_rate_by_depth_calculates_correctly(client: TestClient, sample_deck_id: str) -> None:
     """Test that keep rates are calculated correctly for each mulligan depth."""
     # Create multiple sessions at mulligan depth 0 (opening 7)
     # Keep 2 out of 3
     for _ in range(2):
-        session = client.post(
-            "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
-        )
+        session = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})
         client.post(
             f"/api/v1/sessions/{session.json()['session_id']}/keep",
             json={"cards_to_bottom": []},
         )
 
-    session = client.post(
-        "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
-    )
+    session = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})
     client.post(f"/api/v1/sessions/{session.json()['session_id']}/mulligan")
     # This game ends without a keep, so we need to complete it
-    mull_response = client.post(
-        f"/api/v1/sessions/{session.json()['session_id']}/mulligan"
-    )
+    mull_response = client.post(f"/api/v1/sessions/{session.json()['session_id']}/mulligan")
     card_to_bottom = mull_response.json()["current_hand"]["cards"][0]["name"]
     client.post(
         f"/api/v1/sessions/{session.json()['session_id']}/keep",
@@ -111,25 +93,17 @@ def test_keep_rate_by_depth_calculates_correctly(
 
     # Create sessions at mulligan depth 1 (mull to 6)
     # Keep 1 out of 2
-    session = client.post(
-        "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
-    )
-    mull_response = client.post(
-        f"/api/v1/sessions/{session.json()['session_id']}/mulligan"
-    )
+    session = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})
+    mull_response = client.post(f"/api/v1/sessions/{session.json()['session_id']}/mulligan")
     card_to_bottom = mull_response.json()["current_hand"]["cards"][0]["name"]
     client.post(
         f"/api/v1/sessions/{session.json()['session_id']}/keep",
         json={"cards_to_bottom": [card_to_bottom]},
     )
 
-    session = client.post(
-        "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
-    )
+    session = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})
     client.post(f"/api/v1/sessions/{session.json()['session_id']}/mulligan")
-    mull_response = client.post(
-        f"/api/v1/sessions/{session.json()['session_id']}/mulligan"
-    )
+    mull_response = client.post(f"/api/v1/sessions/{session.json()['session_id']}/mulligan")
     cards_to_bottom = [
         mull_response.json()["current_hand"]["cards"][0]["name"],
         mull_response.json()["current_hand"]["cards"][1]["name"],
@@ -172,9 +146,7 @@ def test_keep_rate_by_depth_handles_no_decisions_at_depth(
 ) -> None:
     """Test that keep rate by depth handles depths with no decisions gracefully."""
     # Only keep at depth 0
-    session = client.post(
-        "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
-    )
+    session = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})
     client.post(
         f"/api/v1/sessions/{session.json()['session_id']}/keep",
         json={"cards_to_bottom": []},
@@ -200,13 +172,9 @@ def test_keep_rate_by_depth_with_all_mulls_at_depth(
 ) -> None:
     """Test keep rate when all hands at a depth are mulliganed."""
     # Mull from 7, mull from 6, keep at 5
-    session = client.post(
-        "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
-    )
+    session = client.post("/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True})
     client.post(f"/api/v1/sessions/{session.json()['session_id']}/mulligan")
-    mull_response = client.post(
-        f"/api/v1/sessions/{session.json()['session_id']}/mulligan"
-    )
+    mull_response = client.post(f"/api/v1/sessions/{session.json()['session_id']}/mulligan")
     cards_to_bottom = [
         mull_response.json()["current_hand"]["cards"][0]["name"],
         mull_response.json()["current_hand"]["cards"][1]["name"],
