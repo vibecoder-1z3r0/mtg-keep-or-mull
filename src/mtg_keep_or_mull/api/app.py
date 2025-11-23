@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from mtg_keep_or_mull.api.routers import decks, decisions, sessions, statistics
+from mtg_keep_or_mull.api.routers import decisions, decks, sessions, statistics
 
 # Create FastAPI app
 app = FastAPI(
