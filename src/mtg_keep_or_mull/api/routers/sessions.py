@@ -134,7 +134,7 @@ def get_session(
 @router.post("/{session_id}/mulligan", response_model=SessionResponse)
 def mulligan_hand(
     session_id: str,
-    request: MulliganRequest = MulliganRequest(),
+    request: MulliganRequest = MulliganRequest(reason=None),
     sessions: Dict[str, MulliganSimulator] = Depends(get_sessions),
     session_decks: Dict[str, str] = Depends(get_session_decks),
     datastore: DataStore = Depends(get_datastore),
