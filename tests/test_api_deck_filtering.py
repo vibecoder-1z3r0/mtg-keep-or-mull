@@ -81,13 +81,13 @@ def test_get_random_deck_filtered_by_format(client: TestClient) -> None:
     )
 
     # Get random Pauper deck (should match first deck which has Pauper IN its format list)
-    response = client.get("/api/v1/decks/random?format=Pauper")
+    response = client.get("/api/v1/decks/random?mtg_format=Pauper")
     assert response.status_code == 200
     data = response.json()
     assert "Pauper" in data["format"]
 
     # Get random Modern deck
-    response = client.get("/api/v1/decks/random?format=Modern")
+    response = client.get("/api/v1/decks/random?mtg_format=Modern")
     assert response.status_code == 200
     data = response.json()
     assert "Modern" in data["format"]
@@ -227,7 +227,7 @@ def test_get_random_deck_filtered_by_multiple_criteria(client: TestClient) -> No
     )
 
     # Get random Pauper Tempo deck with delver tag
-    response = client.get("/api/v1/decks/random?format=Pauper&archetype=Tempo&tags=delver")
+    response = client.get("/api/v1/decks/random?mtg_format=Pauper&archetype=Tempo&tags=delver")
     assert response.status_code == 200
     data = response.json()
     assert "Pauper" in data["format"]
@@ -249,7 +249,7 @@ def test_get_random_deck_no_match_returns_404(client: TestClient) -> None:
     )
 
     # Try to get random Modern deck (should fail)
-    response = client.get("/api/v1/decks/random?format=Modern")
+    response = client.get("/api/v1/decks/random?mtg_format=Modern")
     assert response.status_code == 404
 
     # Try to get random deck with non-existent tag
@@ -286,14 +286,14 @@ def test_list_decks_filtered_by_format(client: TestClient) -> None:
     )
 
     # List Pauper decks (should find 2)
-    response = client.get("/api/v1/decks?format=Pauper")
+    response = client.get("/api/v1/decks?mtg_format=Pauper")
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 2
     assert all("Pauper" in deck["format"] for deck in data["decks"])
 
     # List Modern decks (should find 2)
-    response = client.get("/api/v1/decks?format=Modern")
+    response = client.get("/api/v1/decks?mtg_format=Modern")
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 2
@@ -435,7 +435,7 @@ def test_list_decks_filtered_by_multiple_criteria(client: TestClient) -> None:
     )
 
     # List Pauper Control decks with U
-    response = client.get("/api/v1/decks?format=Pauper&archetype=Control&colors=U")
+    response = client.get("/api/v1/decks?mtg_format=Pauper&archetype=Control&colors=U")
     assert response.status_code == 200
     data = response.json()
     assert data["total"] == 1

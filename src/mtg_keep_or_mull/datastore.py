@@ -107,7 +107,7 @@ class DataStore(Protocol):
 
     def list_decks_filtered(
         self,
-        format: Optional[str] = None,
+        mtg_format: Optional[str] = None,
         archetype: Optional[str] = None,
         colors: Optional[str] = None,
         tags: Optional[str] = None,
@@ -118,7 +118,7 @@ class DataStore(Protocol):
         Multiple filters use AND logic.
 
         Args:
-            format: Optional format filter (e.g., "Pauper")
+            mtg_format: Optional format filter (e.g., "Pauper")
                 - matches if value in deck.format list
             archetype: Optional archetype filter (e.g., "Aggro")
                 - matches if value in deck.archetype list
@@ -134,7 +134,7 @@ class DataStore(Protocol):
 
     def get_random_deck(
         self,
-        format: Optional[str] = None,
+        mtg_format: Optional[str] = None,
         archetype: Optional[str] = None,
         colors: Optional[str] = None,
         tags: Optional[str] = None,
@@ -142,7 +142,7 @@ class DataStore(Protocol):
         """Get a random deck, optionally filtered by format, archetype, colors, and/or tags.
 
         Args:
-            format: Optional format filter - matches if value in deck.format list
+            mtg_format: Optional format filter - matches if value in deck.format list
             archetype: Optional archetype filter - matches if value in deck.archetype list
             colors: Optional color filter - matches if value in deck.colors list
             tags: Optional tag filter - matches if value in deck.tags list
@@ -238,7 +238,7 @@ class MockDataStore:
 
     def list_decks_filtered(
         self,
-        format: Optional[str] = None,
+        mtg_format: Optional[str] = None,
         archetype: Optional[str] = None,
         colors: Optional[str] = None,
         tags: Optional[str] = None,
@@ -250,12 +250,12 @@ class MockDataStore:
         deck_ids = []
         for deck_id, deck in self._decks.items():
             # If no filters provided, include all decks
-            if format is None and archetype is None and colors is None and tags is None:
+            if mtg_format is None and archetype is None and colors is None and tags is None:
                 deck_ids.append(deck_id)
                 continue
 
             # Check format filter (value must be IN deck.format list)
-            if format is not None and format not in deck.format:
+            if mtg_format is not None and mtg_format not in deck.format:
                 continue
 
             # Check archetype filter (value must be IN deck.archetype list)
@@ -277,7 +277,7 @@ class MockDataStore:
 
     def get_random_deck(
         self,
-        format: Optional[str] = None,
+        mtg_format: Optional[str] = None,
         archetype: Optional[str] = None,
         colors: Optional[str] = None,
         tags: Optional[str] = None,
@@ -286,7 +286,7 @@ class MockDataStore:
         import random
 
         matching_deck_ids = self.list_decks_filtered(
-            format=format, archetype=archetype, colors=colors, tags=tags
+            mtg_format=mtg_format, archetype=archetype, colors=colors, tags=tags
         )
 
         if not matching_deck_ids:
@@ -507,7 +507,7 @@ class JSONDataStore:
 
     def list_decks_filtered(
         self,
-        format: Optional[str] = None,
+        mtg_format: Optional[str] = None,
         archetype: Optional[str] = None,
         colors: Optional[str] = None,
         tags: Optional[str] = None,
@@ -525,12 +525,12 @@ class JSONDataStore:
                 continue
 
             # If no filters provided, include all decks
-            if format is None and archetype is None and colors is None and tags is None:
+            if mtg_format is None and archetype is None and colors is None and tags is None:
                 filtered_ids.append(deck_id)
                 continue
 
             # Check format filter (value must be IN deck.format list)
-            if format is not None and format not in deck.format:
+            if mtg_format is not None and mtg_format not in deck.format:
                 continue
 
             # Check archetype filter (value must be IN deck.archetype list)
@@ -552,7 +552,7 @@ class JSONDataStore:
 
     def get_random_deck(
         self,
-        format: Optional[str] = None,
+        mtg_format: Optional[str] = None,
         archetype: Optional[str] = None,
         colors: Optional[str] = None,
         tags: Optional[str] = None,
@@ -561,7 +561,7 @@ class JSONDataStore:
         import random
 
         matching_deck_ids = self.list_decks_filtered(
-            format=format, archetype=archetype, colors=colors, tags=tags
+            mtg_format=mtg_format, archetype=archetype, colors=colors, tags=tags
         )
 
         if not matching_deck_ids:
@@ -1685,7 +1685,7 @@ class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
 
     def list_decks_filtered(
         self,
-        format: Optional[str] = None,
+        mtg_format: Optional[str] = None,
         archetype: Optional[str] = None,
         colors: Optional[str] = None,
         tags: Optional[str] = None,
@@ -1704,12 +1704,12 @@ class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
                 continue
 
             # If no filters provided, include all decks
-            if format is None and archetype is None and colors is None and tags is None:
+            if mtg_format is None and archetype is None and colors is None and tags is None:
                 filtered_ids.append(deck_id)
                 continue
 
             # Check format filter (value must be IN deck.format list)
-            if format is not None and format not in deck.format:
+            if mtg_format is not None and mtg_format not in deck.format:
                 continue
 
             # Check archetype filter (value must be IN deck.archetype list)
@@ -1731,7 +1731,7 @@ class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
 
     def get_random_deck(
         self,
-        format: Optional[str] = None,
+        mtg_format: Optional[str] = None,
         archetype: Optional[str] = None,
         colors: Optional[str] = None,
         tags: Optional[str] = None,
@@ -1740,7 +1740,7 @@ class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
         import random
 
         matching_deck_ids = self.list_decks_filtered(
-            format=format, archetype=archetype, colors=colors, tags=tags
+            mtg_format=mtg_format, archetype=archetype, colors=colors, tags=tags
         )
 
         if not matching_deck_ids:

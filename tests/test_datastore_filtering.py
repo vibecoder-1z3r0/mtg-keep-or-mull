@@ -119,7 +119,7 @@ class TestDataStoreFiltering:
     ) -> None:
         """Test filtering decks that contain a specific format in their format list."""
         # Pauper-legal decks
-        pauper_decks = datastore_with_decks.list_decks_filtered(format="Pauper")
+        pauper_decks = datastore_with_decks.list_decks_filtered(mtg_format="Pauper")
         assert len(pauper_decks) == 4  # mono_u, elves, burn, grixis
         assert "mono_u_terror" in pauper_decks
         assert "pauper_elves" in pauper_decks
@@ -127,13 +127,13 @@ class TestDataStoreFiltering:
         assert "grixis_storm" in pauper_decks
 
         # Modern-legal decks
-        modern_decks = datastore_with_decks.list_decks_filtered(format="Modern")
+        modern_decks = datastore_with_decks.list_decks_filtered(mtg_format="Modern")
         assert len(modern_decks) == 5  # mono_u, modern_burn, tron, standard, grixis
         assert "mono_u_terror" in modern_decks
         assert "modern_burn" in modern_decks
 
         # Standard-only
-        standard_decks = datastore_with_decks.list_decks_filtered(format="Standard")
+        standard_decks = datastore_with_decks.list_decks_filtered(mtg_format="Standard")
         assert len(standard_decks) == 1
         assert "standard_control" in standard_decks
 
@@ -210,24 +210,24 @@ class TestDataStoreFiltering:
     ) -> None:
         """Test filtering by multiple criteria (AND logic)."""
         # Pauper + Aggro
-        pauper_aggro = datastore_with_decks.list_decks_filtered(format="Pauper", archetype="Aggro")
+        pauper_aggro = datastore_with_decks.list_decks_filtered(mtg_format="Pauper", archetype="Aggro")
         assert len(pauper_aggro) == 2  # elves, burn
         assert "pauper_elves" in pauper_aggro
         assert "pauper_burn" in pauper_aggro
 
         # Modern + Combo
-        modern_combo = datastore_with_decks.list_decks_filtered(format="Modern", archetype="Combo")
+        modern_combo = datastore_with_decks.list_decks_filtered(mtg_format="Modern", archetype="Combo")
         assert len(modern_combo) == 2  # tron, grixis
         assert "modern_tron" in modern_combo
         assert "grixis_storm" in modern_combo
 
         # Pauper + Tempo
-        pauper_tempo = datastore_with_decks.list_decks_filtered(format="Pauper", archetype="Tempo")
+        pauper_tempo = datastore_with_decks.list_decks_filtered(mtg_format="Pauper", archetype="Tempo")
         assert len(pauper_tempo) == 1
         assert "mono_u_terror" in pauper_tempo
 
         # Format + Colors
-        pauper_blue = datastore_with_decks.list_decks_filtered(format="Pauper", colors="U")
+        pauper_blue = datastore_with_decks.list_decks_filtered(mtg_format="Pauper", colors="U")
         assert len(pauper_blue) == 2  # mono_u, grixis
         assert "mono_u_terror" in pauper_blue
         assert "grixis_storm" in pauper_blue
@@ -241,7 +241,7 @@ class TestDataStoreFiltering:
         """Test filtering by all four criteria simultaneously."""
         # Very specific filter
         result = datastore_with_decks.list_decks_filtered(
-            format="Pauper", archetype="Combo", colors="Grixis", tags="Storm"
+            mtg_format="Pauper", archetype="Combo", colors="Grixis", tags="Storm"
         )
         assert len(result) == 1
         assert "grixis_storm" in result
@@ -249,7 +249,7 @@ class TestDataStoreFiltering:
     def test_list_decks_filtered_no_match(self, datastore_with_decks: MockDataStore) -> None:
         """Test filtering with no matching decks."""
         # Non-existent format
-        vintage_decks = datastore_with_decks.list_decks_filtered(format="Vintage")
+        vintage_decks = datastore_with_decks.list_decks_filtered(mtg_format="Vintage")
         assert len(vintage_decks) == 1  # mono_u is Vintage-legal
         assert "mono_u_terror" in vintage_decks
 
@@ -258,7 +258,7 @@ class TestDataStoreFiltering:
         assert len(midrange_decks) == 0
 
         # Impossible combination
-        legacy_burn = datastore_with_decks.list_decks_filtered(format="Legacy", tags="ramp")
+        legacy_burn = datastore_with_decks.list_decks_filtered(mtg_format="Legacy", tags="ramp")
         assert len(legacy_burn) == 0
 
     def test_list_decks_filtered_no_filters_returns_all(
@@ -287,7 +287,7 @@ class TestDataStoreFiltering:
         # Get multiple random decks to verify they're all from correct format
         pauper_decks_found = set()
         for _ in range(20):
-            deck = datastore_with_decks.get_random_deck(format="Pauper")
+            deck = datastore_with_decks.get_random_deck(mtg_format="Pauper")
             assert deck is not None
             assert "Pauper" in deck.format  # Check format IN list
             pauper_decks_found.add(deck.deck_id)
@@ -342,7 +342,7 @@ class TestDataStoreFiltering:
         # Pauper + Combo
         pauper_combo_found = set()
         for _ in range(10):
-            deck = datastore_with_decks.get_random_deck(format="Pauper", archetype="Combo")
+            deck = datastore_with_decks.get_random_deck(mtg_format="Pauper", archetype="Combo")
             assert deck is not None
             assert "Pauper" in deck.format
             assert "Combo" in deck.archetype
@@ -358,7 +358,7 @@ class TestDataStoreFiltering:
         # Very specific: should always return grixis_storm
         for _ in range(5):
             deck = datastore_with_decks.get_random_deck(
-                format="Pauper", archetype="Combo", colors="Grixis", tags="Storm"
+                mtg_format="Pauper", archetype="Combo", colors="Grixis", tags="Storm"
             )
             assert deck is not None
             assert deck.deck_id == "grixis_storm"
@@ -380,7 +380,7 @@ class TestDataStoreFiltering:
         deck = datastore_with_decks.get_random_deck(tags="nonexistent-tag")
         assert deck is None
 
-        deck = datastore_with_decks.get_random_deck(format="Legacy", tags="ramp")
+        deck = datastore_with_decks.get_random_deck(mtg_format="Legacy", tags="ramp")
         assert deck is None
 
     def test_get_random_deck_empty_datastore(self) -> None:

@@ -79,7 +79,7 @@ def upload_deck(
 
 @router.get("", response_model=DeckListResponse)
 def list_decks(
-    format: Optional[str] = None,
+    mtg_format: Optional[str] = None,
     archetype: Optional[str] = None,
     colors: Optional[str] = None,
     tags: Optional[str] = None,
@@ -88,7 +88,7 @@ def list_decks(
     """List all available decks, optionally filtered.
 
     Args:
-        format: Optional format filter (e.g., "Pauper")
+        mtg_format: Optional format filter (e.g., "Pauper")
             - matches if value in deck's format list
         archetype: Optional archetype filter (e.g., "Aggro")
             - matches if value in deck's archetype list
@@ -103,7 +103,7 @@ def list_decks(
     """
     # Use filtered list if filters provided, otherwise list all
     deck_ids = datastore.list_decks_filtered(
-        format=format, archetype=archetype, colors=colors, tags=tags
+        mtg_format=mtg_format, archetype=archetype, colors=colors, tags=tags
     )
     decks: List[DeckResponse] = []
 
@@ -129,7 +129,7 @@ def list_decks(
 
 @router.get("/random", response_model=DeckResponse)
 def get_random_deck(
-    format: Optional[str] = None,
+    mtg_format: Optional[str] = None,
     archetype: Optional[str] = None,
     colors: Optional[str] = None,
     tags: Optional[str] = None,
@@ -138,7 +138,7 @@ def get_random_deck(
     """Get a random deck, optionally filtered.
 
     Args:
-        format: Optional format filter (e.g., "Pauper")
+        mtg_format: Optional format filter (e.g., "Pauper")
             - matches if value in deck's format list
         archetype: Optional archetype filter (e.g., "Aggro")
             - matches if value in deck's archetype list
@@ -155,13 +155,13 @@ def get_random_deck(
         HTTPException: If no decks match the filters
     """
     deck_data = datastore.get_random_deck(
-        format=format, archetype=archetype, colors=colors, tags=tags
+        mtg_format=mtg_format, archetype=archetype, colors=colors, tags=tags
     )
 
     if not deck_data:
         filter_msg = []
-        if format:
-            filter_msg.append(f"format={format}")
+        if mtg_format:
+            filter_msg.append(f"format={mtg_format}")
         if archetype:
             filter_msg.append(f"archetype={archetype}")
         if colors:
