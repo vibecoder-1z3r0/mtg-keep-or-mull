@@ -118,10 +118,14 @@ class DataStore(Protocol):
         Multiple filters use AND logic.
 
         Args:
-            format: Optional format filter (e.g., "Pauper") - matches if value in deck.format list
-            archetype: Optional archetype filter (e.g., "Aggro") - matches if value in deck.archetype list
-            colors: Optional color filter (e.g., "U", "Grixis") - matches if value in deck.colors list
-            tags: Optional tag filter (e.g., "burn") - matches if value in deck.tags list
+            format: Optional format filter (e.g., "Pauper")
+                - matches if value in deck.format list
+            archetype: Optional archetype filter (e.g., "Aggro")
+                - matches if value in deck.archetype list
+            colors: Optional color filter (e.g., "U", "Grixis")
+                - matches if value in deck.colors list
+            tags: Optional tag filter (e.g., "burn")
+                - matches if value in deck.tags list
 
         Returns:
             List of deck_id strings matching all provided filters
@@ -687,7 +691,10 @@ class SQLiteDataStore:
         # Insert or replace deck
         cursor.execute(
             """
-            INSERT OR REPLACE INTO decks (deck_id, deck_name, main_deck, sideboard, total_games, format, archetype, colors, tags)
+            INSERT OR REPLACE INTO decks (
+                deck_id, deck_name, main_deck, sideboard, total_games,
+                format, archetype, colors, tags
+            )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
@@ -722,7 +729,8 @@ class SQLiteDataStore:
 
         cursor.execute(
             """
-            SELECT deck_id, deck_name, main_deck, sideboard, total_games, format, archetype, colors, tags
+            SELECT deck_id, deck_name, main_deck, sideboard, total_games,
+                   format, archetype, colors, tags
             FROM decks
             WHERE deck_id = ?
         """,

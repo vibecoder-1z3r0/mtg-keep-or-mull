@@ -14,9 +14,15 @@ class DeckUploadRequest(BaseModel):
 
     deck_text: str = Field(..., description="MTGO-format deck list text")
     deck_name: str = Field("", description="Optional human-readable deck name")
-    format: List[str] = Field(default_factory=list, description="MTG formats (e.g., Pauper, Modern, Standard)")
-    archetype: List[str] = Field(default_factory=list, description="Deck archetypes (e.g., Aggro, Control, Combo)")
-    colors: List[str] = Field(default_factory=list, description="Color identity (e.g., U, Grixis, Mono-Blue)")
+    format: List[str] = Field(
+        default_factory=list, description="MTG formats (e.g., Pauper, Modern, Standard)"
+    )
+    archetype: List[str] = Field(
+        default_factory=list, description="Deck archetypes (e.g., Aggro, Control, Combo)"
+    )
+    colors: List[str] = Field(
+        default_factory=list, description="Color identity (e.g., U, Grixis, Mono-Blue)"
+    )
     tags: List[str] = Field(default_factory=list, description="Custom tags for categorization")
 
     model_config = ConfigDict(
@@ -37,9 +43,15 @@ class DeckUpdateRequest(BaseModel):
     """Request model for updating deck metadata."""
 
     deck_name: Optional[str] = Field(None, description="Optional human-readable deck name")
-    format: Optional[List[str]] = Field(None, description="MTG formats (e.g., Pauper, Modern, Standard)")
-    archetype: Optional[List[str]] = Field(None, description="Deck archetypes (e.g., Aggro, Control, Combo)")
-    colors: Optional[List[str]] = Field(None, description="Color identity (e.g., U, Grixis, Mono-Blue)")
+    format: Optional[List[str]] = Field(
+        None, description="MTG formats (e.g., Pauper, Modern, Standard)"
+    )
+    archetype: Optional[List[str]] = Field(
+        None, description="Deck archetypes (e.g., Aggro, Control, Combo)"
+    )
+    colors: Optional[List[str]] = Field(
+        None, description="Color identity (e.g., U, Grixis, Mono-Blue)"
+    )
     tags: Optional[List[str]] = Field(None, description="Custom tags for categorization")
 
     model_config = ConfigDict(
@@ -63,9 +75,15 @@ class DeckResponse(BaseModel):
     main_deck_size: int = Field(..., description="Number of cards in main deck")
     sideboard_size: int = Field(..., description="Number of cards in sideboard")
     created_at: datetime = Field(..., description="When the deck was created")
-    format: List[str] = Field(default_factory=list, description="MTG formats (e.g., Pauper, Modern, Standard)")
-    archetype: List[str] = Field(default_factory=list, description="Deck archetypes (e.g., Aggro, Control, Combo)")
-    colors: List[str] = Field(default_factory=list, description="Color identity (e.g., U, Grixis, Mono-Blue)")
+    format: List[str] = Field(
+        default_factory=list, description="MTG formats (e.g., Pauper, Modern, Standard)"
+    )
+    archetype: List[str] = Field(
+        default_factory=list, description="Deck archetypes (e.g., Aggro, Control, Combo)"
+    )
+    colors: List[str] = Field(
+        default_factory=list, description="Color identity (e.g., U, Grixis, Mono-Blue)"
+    )
     tags: List[str] = Field(default_factory=list, description="Custom tags for categorization")
 
     model_config = ConfigDict(
@@ -169,9 +187,7 @@ class KeepHandRequest(BaseModel):
     cards_to_bottom: List[str] = Field(
         ..., description="Card names to put on bottom (must match mulligan count)"
     )
-    reason: Optional[str] = Field(
-        None, description="Optional reason for keeping this hand"
-    )
+    reason: Optional[str] = Field(None, description="Optional reason for keeping this hand")
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -186,27 +202,19 @@ class KeepHandRequest(BaseModel):
 class MulliganRequest(BaseModel):
     """Request model for mulliganing a hand."""
 
-    reason: Optional[str] = Field(
-        None, description="Optional reason for mulliganing this hand"
-    )
+    reason: Optional[str] = Field(None, description="Optional reason for mulliganing this hand")
 
-    model_config = ConfigDict(
-        json_schema_extra={"example": {"reason": "Too many lands"}}
-    )
+    model_config = ConfigDict(json_schema_extra={"example": {"reason": "Too many lands"}})
 
 
 class DecisionRequest(BaseModel):
     """Request model for recording a mulligan decision."""
 
     decision: str = Field(..., pattern="^(keep|mull)$", description="keep or mull")
-    reason: Optional[str] = Field(
-        None, description="Optional reason for this decision"
-    )
+    reason: Optional[str] = Field(None, description="Optional reason for this decision")
 
     model_config = ConfigDict(
-        json_schema_extra={
-            "example": {"decision": "keep", "reason": "2 lands with cantrip"}
-        }
+        json_schema_extra={"example": {"decision": "keep", "reason": "2 lands with cantrip"}}
     )
 
 

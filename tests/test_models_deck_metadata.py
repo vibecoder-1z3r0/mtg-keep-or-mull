@@ -1,8 +1,5 @@
 """Tests for DeckData model enhancements (list-based metadata fields)."""
 
-import pytest
-from pydantic import ValidationError
-
 from mtg_keep_or_mull.models import DeckData
 
 

@@ -26,9 +26,7 @@ class TestDataStoreUpdateDeck:
         store.save_deck(deck)
         return store
 
-    def test_update_deck_metadata_all_fields(
-        self, datastore_with_deck: MockDataStore
-    ) -> None:
+    def test_update_deck_metadata_all_fields(self, datastore_with_deck: MockDataStore) -> None:
         """Test updating all metadata fields at once."""
         updated_deck = DeckData(
             deck_id="test_deck_001",
@@ -77,9 +75,7 @@ class TestDataStoreUpdateDeck:
         assert loaded.colors == ["U"]  # Should remain unchanged
         assert loaded.tags == ["test"]  # Should remain unchanged
 
-    def test_update_deck_add_colors_and_tags(
-        self, datastore_with_deck: MockDataStore
-    ) -> None:
+    def test_update_deck_add_colors_and_tags(self, datastore_with_deck: MockDataStore) -> None:
         """Test adding colors and tags to a deck that had none."""
         # Create deck with empty colors and tags
         minimal_deck = DeckData(
@@ -113,9 +109,7 @@ class TestDataStoreUpdateDeck:
         assert loaded.colors == ["U", "Mono-Blue"]
         assert loaded.tags == ["permission", "card-draw"]
 
-    def test_update_deck_clear_metadata(
-        self, datastore_with_deck: MockDataStore
-    ) -> None:
+    def test_update_deck_clear_metadata(self, datastore_with_deck: MockDataStore) -> None:
         """Test clearing metadata by setting to empty lists."""
         original = datastore_with_deck.load_deck("test_deck_001")
         assert original is not None
@@ -187,9 +181,7 @@ class TestDataStoreUpdateDeck:
         with pytest.raises(ValueError, match="Deck not found"):
             datastore_with_deck.update_deck(nonexistent_deck)
 
-    def test_update_deck_preserves_total_games(
-        self, datastore_with_deck: MockDataStore
-    ) -> None:
+    def test_update_deck_preserves_total_games(self, datastore_with_deck: MockDataStore) -> None:
         """Test that updating metadata preserves the total_games count."""
         # Create deck with game count
         deck_with_games = DeckData(

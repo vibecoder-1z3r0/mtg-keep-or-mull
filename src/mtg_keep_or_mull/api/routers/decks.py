@@ -85,13 +85,17 @@ def list_decks(
     tags: Optional[str] = None,
     datastore: DataStore = Depends(get_datastore),
 ) -> DeckListResponse:
-    """List all available decks, optionally filtered by format, archetype, colors, and/or tags.
+    """List all available decks, optionally filtered.
 
     Args:
-        format: Optional format filter (e.g., "Pauper") - matches if value in deck's format list
-        archetype: Optional archetype filter (e.g., "Aggro") - matches if value in deck's archetype list
-        colors: Optional colors filter (e.g., "U", "Grixis") - matches if value in deck's colors list
-        tags: Optional tags filter (e.g., "burn") - matches if value in deck's tags list
+        format: Optional format filter (e.g., "Pauper")
+            - matches if value in deck's format list
+        archetype: Optional archetype filter (e.g., "Aggro")
+            - matches if value in deck's archetype list
+        colors: Optional colors filter (e.g., "U", "Grixis")
+            - matches if value in deck's colors list
+        tags: Optional tags filter (e.g., "burn")
+            - matches if value in deck's tags list
         datastore: DataStore dependency
 
     Returns:
@@ -131,13 +135,17 @@ def get_random_deck(
     tags: Optional[str] = None,
     datastore: DataStore = Depends(get_datastore),
 ) -> DeckResponse:
-    """Get a random deck, optionally filtered by format, archetype, colors, and/or tags.
+    """Get a random deck, optionally filtered.
 
     Args:
-        format: Optional format filter (e.g., "Pauper") - matches if value in deck's format list
-        archetype: Optional archetype filter (e.g., "Aggro") - matches if value in deck's archetype list
-        colors: Optional colors filter (e.g., "U", "Grixis") - matches if value in deck's colors list
-        tags: Optional tags filter (e.g., "burn") - matches if value in deck's tags list
+        format: Optional format filter (e.g., "Pauper")
+            - matches if value in deck's format list
+        archetype: Optional archetype filter (e.g., "Aggro")
+            - matches if value in deck's archetype list
+        colors: Optional colors filter (e.g., "U", "Grixis")
+            - matches if value in deck's colors list
+        tags: Optional tags filter (e.g., "burn")
+            - matches if value in deck's tags list
         datastore: DataStore dependency
 
     Returns:
@@ -161,9 +169,7 @@ def get_random_deck(
         if tags:
             filter_msg.append(f"tags={tags}")
         filter_str = " and ".join(filter_msg) if filter_msg else "any criteria"
-        raise HTTPException(
-            status_code=404, detail=f"No decks available matching {filter_str}"
-        )
+        raise HTTPException(status_code=404, detail=f"No decks available matching {filter_str}")
 
     return DeckResponse(
         deck_id=deck_data.deck_id,
@@ -235,9 +241,7 @@ def update_deck(
 
     # Check if at least one field is provided for update
     update_fields = {
-        k: v
-        for k, v in request.model_dump(exclude_unset=True).items()
-        if v is not None
+        k: v for k, v in request.model_dump(exclude_unset=True).items() if v is not None
     }
     if not update_fields:
         raise HTTPException(
