@@ -154,6 +154,10 @@ disable = [
     "import-error",  # optional dependencies (pytest, psycopg2, mysql) may not be installed
     "import-outside-toplevel",  # lazy imports for optional dependencies
     "too-many-positional-arguments",  # database constructors need many parameters
+    "redefined-outer-name",  # pytest fixtures commonly shadow module-level fixtures
+    "reimported",  # acceptable in tests for fixture resets
+    "broad-exception-caught",  # acceptable in tests for error handling validation
+    "too-many-locals",  # acceptable for complex endpoint handlers
 ]
 
 [tool.pylint.imports]
