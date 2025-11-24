@@ -210,19 +210,25 @@ class TestDataStoreFiltering:
     ) -> None:
         """Test filtering by multiple criteria (AND logic)."""
         # Pauper + Aggro
-        pauper_aggro = datastore_with_decks.list_decks_filtered(mtg_format="Pauper", archetype="Aggro")
+        pauper_aggro = datastore_with_decks.list_decks_filtered(
+            mtg_format="Pauper", archetype="Aggro"
+        )
         assert len(pauper_aggro) == 2  # elves, burn
         assert "pauper_elves" in pauper_aggro
         assert "pauper_burn" in pauper_aggro
 
         # Modern + Combo
-        modern_combo = datastore_with_decks.list_decks_filtered(mtg_format="Modern", archetype="Combo")
+        modern_combo = datastore_with_decks.list_decks_filtered(
+            mtg_format="Modern", archetype="Combo"
+        )
         assert len(modern_combo) == 2  # tron, grixis
         assert "modern_tron" in modern_combo
         assert "grixis_storm" in modern_combo
 
         # Pauper + Tempo
-        pauper_tempo = datastore_with_decks.list_decks_filtered(mtg_format="Pauper", archetype="Tempo")
+        pauper_tempo = datastore_with_decks.list_decks_filtered(
+            mtg_format="Pauper", archetype="Tempo"
+        )
         assert len(pauper_tempo) == 1
         assert "mono_u_terror" in pauper_tempo
 
