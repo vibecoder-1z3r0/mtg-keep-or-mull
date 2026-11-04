@@ -1,5 +1,7 @@
 """Tests for session management API endpoints."""
 
+from collections import Counter
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -314,19 +316,27 @@ def test_keep_automatically_records_decision(client: TestClient, sample_deck_id:
 
 
 def test_multiple_mulligans_record_each_decision(client: TestClient, sample_deck_id: str) -> None:
-    """Test that multiple mulligans each record a decision."""
+    """Test that multiple mulligans each record a decision.
+
+    Hands are shuffled randomly and signatures only encode card composition, so
+    two of the three hands seen can share a signature. Expected counts are
+    therefore derived from the signatures actually seen rather than assuming
+    they are all distinct.
+    """
     # Start session
     start_response = client.post(
         "/api/v1/sessions", json={"deck_id": sample_deck_id, "on_play": True}
     )
     session_id = start_response.json()["session_id"]
+    first_signature = start_response.json()["current_hand"]["signature"]
 
     # Mulligan twice
-    client.post(f"/api/v1/sessions/{session_id}/mulligan")
+    first_mull = client.post(f"/api/v1/sessions/{session_id}/mulligan")
+    second_signature = first_mull.json()["current_hand"]["signature"]
     mull_response = client.post(f"/api/v1/sessions/{session_id}/mulligan")
 
-    # Remember the 7-card hand signature BEFORE keeping (this is what gets recorded)
-    hand_signature_before_keep = mull_response.json()["current_hand"]["signature"]
+    # The 7-card hand signature BEFORE keeping is what gets recorded as the keep
+    kept_signature = mull_response.json()["current_hand"]["signature"]
 
     # Keep final hand - get actual cards from the hand to bottom
     cards_in_hand = mull_response.json()["current_hand"]["cards"]
@@ -334,18 +344,22 @@ def test_multiple_mulligans_record_each_decision(client: TestClient, sample_deck
 
     client.post(f"/api/v1/sessions/{session_id}/keep", json={"cards_to_bottom": cards_to_bottom})
 
-    # Verify statistics: should have 3 decisions total (2 mull + 1 keep)
+    # Each hand that was mulliganed away is recorded as a mull; the last one as a keep
+    expected_mulled = Counter([first_signature, second_signature])
+    expected_kept = Counter([kept_signature])
+
     stats_response = client.get("/api/v1/statistics/hands")
     hands = stats_response.json()["hands"]
+    actual = {h["hand_signature"]: (h["times_kept"], h["times_mulled"]) for h in hands}
 
-    # We should have up to 3 different hand signatures (could be fewer if hands repeat)
-    assert stats_response.json()["total"] >= 1
-
-    # Find the kept hand (signature before bottoming)
-    kept_hand_stats = [h for h in hands if h["hand_signature"] == hand_signature_before_keep]
-    assert len(kept_hand_stats) == 1
-    assert kept_hand_stats[0]["times_kept"] == 1
-    assert kept_hand_stats[0]["times_mulled"] == 0  # This particular hand was kept, not mulled
+    expected = {
+        sig: (expected_kept[sig], expected_mulled[sig])
+        for sig in set(expected_mulled) | set(expected_kept)
+    }
+    assert actual == expected
+    # 3 decisions total (2 mull + 1 keep), regardless of signature collisions
+    assert sum(k for k, _ in actual.values()) == 1
+    assert sum(m for _, m in actual.values()) == 2
 
 
 def test_keep_after_mulligan_records_decision_with_cards_bottomed(
