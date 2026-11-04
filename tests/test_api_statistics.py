@@ -15,8 +15,8 @@ def client() -> TestClient:
         TestClient instance
     """
     # Clear state before each test
-    _datastore._decks.clear()  # type: ignore[attr-defined]
-    _datastore._decisions.clear()  # type: ignore[attr-defined]
+    _datastore._decks.clear()
+    _datastore._decisions.clear()
     _sessions.clear()
     _session_decks.clear()
     return TestClient(app)

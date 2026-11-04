@@ -7,7 +7,7 @@ from mtg_keep_or_mull.datastore import DataStore, MockDataStore
 from mtg_keep_or_mull.mulligan import MulliganSimulator
 
 # Global storage instances (will be dependency-injected)
-_datastore: DataStore = MockDataStore()
+_datastore = MockDataStore()
 _sessions: Dict[str, MulliganSimulator] = {}
 _session_decks: Dict[str, str] = {}  # Maps session_id -> deck_id
 
