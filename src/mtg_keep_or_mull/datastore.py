@@ -609,8 +609,7 @@ class SQLiteDataStore:
         cursor = conn.cursor()
 
         # Create decks table
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS decks (
                 deck_id TEXT PRIMARY KEY,
                 deck_name TEXT NOT NULL DEFAULT '',
@@ -622,12 +621,10 @@ class SQLiteDataStore:
                 colors TEXT NOT NULL DEFAULT '[]',
                 tags TEXT NOT NULL DEFAULT '[]'
             )
-        """
-        )
+        """)
 
         # Create hand_decisions table
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS hand_decisions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 deck_id TEXT NOT NULL,
@@ -640,30 +637,23 @@ class SQLiteDataStore:
                 timestamp TEXT NOT NULL,
                 FOREIGN KEY (deck_id) REFERENCES decks(deck_id) ON DELETE CASCADE
             )
-        """
-        )
+        """)
 
         # Create indexes
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_hand_decisions_deck_id
             ON hand_decisions(deck_id)
-        """
-        )
+        """)
 
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_hand_decisions_signature
             ON hand_decisions(hand_signature)
-        """
-        )
+        """)
 
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_hand_decisions_timestamp
             ON hand_decisions(timestamp)
-        """
-        )
+        """)
 
         conn.commit()
         conn.close()
@@ -912,14 +902,12 @@ class SQLiteDataStore:
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT deck_id, hand_signature, hand_display, mulligan_count,
                    decision, lands_in_hand, on_play, timestamp
             FROM hand_decisions
             ORDER BY timestamp
-        """
-        )
+        """)
 
         rows = cursor.fetchall()
         conn.close()
@@ -989,16 +977,14 @@ class SQLiteDataStore:
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT
                 hand_signature,
                 SUM(CASE WHEN decision = 'keep' THEN 1 ELSE 0 END) as times_kept,
                 SUM(CASE WHEN decision = 'mull' THEN 1 ELSE 0 END) as times_mulled
             FROM hand_decisions
             GROUP BY hand_signature
-        """
-        )
+        """)
 
         rows = cursor.fetchall()
         conn.close()
@@ -1073,8 +1059,7 @@ class PostgreSQLDataStore:  # pylint: disable=too-many-instance-attributes
         cursor = conn.cursor()
 
         # Create decks table
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS decks (
                 deck_id VARCHAR(255) PRIMARY KEY,
                 deck_name VARCHAR(255) NOT NULL DEFAULT '',
@@ -1082,12 +1067,10 @@ class PostgreSQLDataStore:  # pylint: disable=too-many-instance-attributes
                 sideboard TEXT NOT NULL,
                 total_games INTEGER NOT NULL DEFAULT 0
             )
-        """
-        )
+        """)
 
         # Create hand_decisions table
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS hand_decisions (
                 id SERIAL PRIMARY KEY,
                 deck_id VARCHAR(255) NOT NULL,
@@ -1100,30 +1083,23 @@ class PostgreSQLDataStore:  # pylint: disable=too-many-instance-attributes
                 timestamp TIMESTAMP NOT NULL,
                 FOREIGN KEY (deck_id) REFERENCES decks(deck_id) ON DELETE CASCADE
             )
-        """
-        )
+        """)
 
         # Create indexes
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_hand_decisions_deck_id
             ON hand_decisions(deck_id)
-        """
-        )
+        """)
 
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_hand_decisions_signature
             ON hand_decisions(hand_signature)
-        """
-        )
+        """)
 
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_hand_decisions_timestamp
             ON hand_decisions(timestamp)
-        """
-        )
+        """)
 
         conn.commit()
         conn.close()
@@ -1262,14 +1238,12 @@ class PostgreSQLDataStore:  # pylint: disable=too-many-instance-attributes
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT deck_id, hand_signature, hand_display, mulligan_count,
                    decision, lands_in_hand, on_play, timestamp
             FROM hand_decisions
             ORDER BY timestamp
-        """
-        )
+        """)
 
         rows = cursor.fetchall()
         conn.close()
@@ -1325,16 +1299,14 @@ class PostgreSQLDataStore:  # pylint: disable=too-many-instance-attributes
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT
                 hand_signature,
                 SUM(CASE WHEN decision = 'keep' THEN 1 ELSE 0 END) as times_kept,
                 SUM(CASE WHEN decision = 'mull' THEN 1 ELSE 0 END) as times_mulled
             FROM hand_decisions
             GROUP BY hand_signature
-        """
-        )
+        """)
 
         rows = cursor.fetchall()
         conn.close()
@@ -1406,8 +1378,7 @@ class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
         cursor = conn.cursor()
 
         # Create decks table
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS decks (
                 deck_id VARCHAR(255) PRIMARY KEY,
                 deck_name VARCHAR(255) NOT NULL DEFAULT '',
@@ -1415,12 +1386,10 @@ class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
                 sideboard TEXT NOT NULL,
                 total_games INT NOT NULL DEFAULT 0
             )
-        """
-        )
+        """)
 
         # Create hand_decisions table
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS hand_decisions (
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 deck_id VARCHAR(255) NOT NULL,
@@ -1434,30 +1403,23 @@ class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
                 FOREIGN KEY (deck_id) REFERENCES decks(deck_id) ON DELETE CASCADE,
                 CONSTRAINT chk_decision CHECK (decision IN ('keep', 'mull'))
             )
-        """
-        )
+        """)
 
         # Create indexes
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_hand_decisions_deck_id
             ON hand_decisions(deck_id)
-        """
-        )
+        """)
 
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_hand_decisions_signature
             ON hand_decisions(hand_signature(255))
-        """
-        )
+        """)
 
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_hand_decisions_timestamp
             ON hand_decisions(timestamp)
-        """
-        )
+        """)
 
         conn.commit()
         conn.close()
@@ -1596,14 +1558,12 @@ class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT deck_id, hand_signature, hand_display, mulligan_count,
                    decision, lands_in_hand, on_play, timestamp
             FROM hand_decisions
             ORDER BY timestamp
-        """
-        )
+        """)
 
         rows = cursor.fetchall()
         conn.close()
@@ -1659,16 +1619,14 @@ class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
         conn = self._get_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT
                 hand_signature,
                 SUM(CASE WHEN decision = 'keep' THEN 1 ELSE 0 END) as times_kept,
                 SUM(CASE WHEN decision = 'mull' THEN 1 ELSE 0 END) as times_mulled
             FROM hand_decisions
             GROUP BY hand_signature
-        """
-        )
+        """)
 
         rows = cursor.fetchall()
         conn.close()
