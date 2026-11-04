@@ -67,6 +67,17 @@ class DataStore(Protocol):
         """
         ...
 
+    def update_deck(self, deck: DeckData) -> None:
+        """Update an existing deck's metadata.
+
+        Args:
+            deck: The deck data with updated metadata
+
+        Raises:
+            ValueError: If the deck doesn't exist
+        """
+        ...
+
     def list_decks(self) -> List[str]:
         """List all available deck IDs.
 
@@ -83,6 +94,61 @@ class DataStore(Protocol):
 
         Returns:
             List of all hand decisions made with this deck
+        """
+        ...
+
+    def get_all_decisions(self) -> List[HandDecisionData]:
+        """Get all hand decisions across all decks.
+
+        Returns:
+            List of all hand decisions
+        """
+        ...
+
+    def list_decks_filtered(
+        self,
+        mtg_format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
+    ) -> List[str]:
+        """List deck IDs filtered by format, archetype, colors, and/or tags.
+
+        Filters use "contains" logic - a deck matches if the filter value is IN the deck's list.
+        Multiple filters use AND logic.
+
+        Args:
+            mtg_format: Optional format filter (e.g., "Pauper")
+                - matches if value in deck.format list
+            archetype: Optional archetype filter (e.g., "Aggro")
+                - matches if value in deck.archetype list
+            colors: Optional color filter (e.g., "U", "Grixis")
+                - matches if value in deck.colors list
+            tags: Optional tag filter (e.g., "burn")
+                - matches if value in deck.tags list
+
+        Returns:
+            List of deck_id strings matching all provided filters
+        """
+        ...
+
+    def get_random_deck(
+        self,
+        mtg_format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
+    ) -> Optional[DeckData]:
+        """Get a random deck, optionally filtered by format, archetype, colors, and/or tags.
+
+        Args:
+            mtg_format: Optional format filter - matches if value in deck.format list
+            archetype: Optional archetype filter - matches if value in deck.archetype list
+            colors: Optional color filter - matches if value in deck.colors list
+            tags: Optional tag filter - matches if value in deck.tags list
+
+        Returns:
+            Random DeckData matching the filters, or None if no decks match
         """
         ...
 
@@ -145,6 +211,19 @@ class MockDataStore:
         """Load a deck by ID."""
         return self._decks.get(deck_id)
 
+    def update_deck(self, deck: DeckData) -> None:
+        """Update an existing deck's metadata.
+
+        Args:
+            deck: The deck data with updated metadata
+
+        Raises:
+            ValueError: If the deck doesn't exist
+        """
+        if deck.deck_id not in self._decks:
+            raise ValueError(f"Deck not found: {deck.deck_id}")
+        self._decks[deck.deck_id] = deck
+
     def list_decks(self) -> List[str]:
         """List all available deck IDs."""
         return list(self._decks.keys())
@@ -152,6 +231,69 @@ class MockDataStore:
     def get_decisions_for_deck(self, deck_id: str) -> List[HandDecisionData]:
         """Get all hand decisions for a specific deck."""
         return [d for d in self._decisions if d.deck_id == deck_id]
+
+    def get_all_decisions(self) -> List[HandDecisionData]:
+        """Get all hand decisions across all decks."""
+        return list(self._decisions)
+
+    def list_decks_filtered(
+        self,
+        mtg_format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
+    ) -> List[str]:
+        """List deck IDs filtered by format, archetype, colors, and/or tags.
+
+        Uses "contains" logic - filters match if value is IN the deck's list.
+        """
+        deck_ids = []
+        for deck_id, deck in self._decks.items():
+            # If no filters provided, include all decks
+            if mtg_format is None and archetype is None and colors is None and tags is None:
+                deck_ids.append(deck_id)
+                continue
+
+            # Check format filter (value must be IN deck.format list)
+            if mtg_format is not None and mtg_format not in deck.format:
+                continue
+
+            # Check archetype filter (value must be IN deck.archetype list)
+            if archetype is not None and archetype not in deck.archetype:
+                continue
+
+            # Check colors filter (value must be IN deck.colors list)
+            if colors is not None and colors not in deck.colors:
+                continue
+
+            # Check tags filter (value must be IN deck.tags list)
+            if tags is not None and tags not in deck.tags:
+                continue
+
+            # Deck passed all filters
+            deck_ids.append(deck_id)
+
+        return deck_ids
+
+    def get_random_deck(
+        self,
+        mtg_format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
+    ) -> Optional[DeckData]:
+        """Get a random deck, optionally filtered by format, archetype, colors, and/or tags."""
+        import random
+
+        matching_deck_ids = self.list_decks_filtered(
+            mtg_format=mtg_format, archetype=archetype, colors=colors, tags=tags
+        )
+
+        if not matching_deck_ids:
+            return None
+
+        random_deck_id = random.choice(matching_deck_ids)
+        return self._decks.get(random_deck_id)
 
 
 class JSONDataStore:
@@ -219,6 +361,24 @@ class JSONDataStore:
 
         return DeckData(**data)
 
+    def update_deck(self, deck: DeckData) -> None:
+        """Update an existing deck's metadata.
+
+        Args:
+            deck: The deck data with updated metadata
+
+        Raises:
+            ValueError: If the deck doesn't exist
+        """
+        deck_file = self.decks_dir / f"{deck.deck_id}.json"
+
+        if not deck_file.exists():
+            raise ValueError(f"Deck not found: {deck.deck_id}")
+
+        # Save the updated deck
+        with open(deck_file, "w", encoding="utf-8") as f:
+            json.dump(deck.model_dump(), f, indent=2, ensure_ascii=False)
+
     def list_decks(self) -> List[str]:
         """List all available deck IDs.
 
@@ -273,6 +433,19 @@ class JSONDataStore:
 
         # Convert JSON data to HandDecisionData objects
         return [HandDecisionData(**d) for d in decisions_data]
+
+    def get_all_decisions(self) -> List[HandDecisionData]:
+        """Get all hand decisions across all decks.
+
+        Returns:
+            List of all hand decisions
+        """
+        all_decisions = []
+        for decisions_file in self.decisions_dir.glob("*.json"):
+            with open(decisions_file, "r", encoding="utf-8") as f:
+                decisions_data = json.load(f)
+                all_decisions.extend([HandDecisionData(**d) for d in decisions_data])
+        return all_decisions
 
     def get_hand_statistics(self, hand_signature: str) -> Optional[HandStats]:
         """Get aggregated statistics for a specific hand composition.
@@ -332,6 +505,71 @@ class JSONDataStore:
 
         return all_stats
 
+    def list_decks_filtered(
+        self,
+        mtg_format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
+    ) -> List[str]:
+        """List deck IDs filtered by format, archetype, colors, and/or tags.
+
+        Uses "contains" logic - filters match if value is IN the deck's list.
+        """
+        all_deck_ids = self.list_decks()
+        filtered_ids = []
+
+        for deck_id in all_deck_ids:
+            deck = self.load_deck(deck_id)
+            if not deck:
+                continue
+
+            # If no filters provided, include all decks
+            if mtg_format is None and archetype is None and colors is None and tags is None:
+                filtered_ids.append(deck_id)
+                continue
+
+            # Check format filter (value must be IN deck.format list)
+            if mtg_format is not None and mtg_format not in deck.format:
+                continue
+
+            # Check archetype filter (value must be IN deck.archetype list)
+            if archetype is not None and archetype not in deck.archetype:
+                continue
+
+            # Check colors filter (value must be IN deck.colors list)
+            if colors is not None and colors not in deck.colors:
+                continue
+
+            # Check tags filter (value must be IN deck.tags list)
+            if tags is not None and tags not in deck.tags:
+                continue
+
+            # Deck passed all filters
+            filtered_ids.append(deck_id)
+
+        return filtered_ids
+
+    def get_random_deck(
+        self,
+        mtg_format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
+    ) -> Optional[DeckData]:
+        """Get a random deck, optionally filtered by format, archetype, colors, and/or tags."""
+        import random
+
+        matching_deck_ids = self.list_decks_filtered(
+            mtg_format=mtg_format, archetype=archetype, colors=colors, tags=tags
+        )
+
+        if not matching_deck_ids:
+            return None
+
+        random_deck_id = random.choice(matching_deck_ids)
+        return self.load_deck(random_deck_id)
+
 
 class SQLiteDataStore:
     """SQLite database implementation of DataStore.
@@ -378,7 +616,11 @@ class SQLiteDataStore:
                 deck_name TEXT NOT NULL DEFAULT '',
                 main_deck TEXT NOT NULL,
                 sideboard TEXT NOT NULL,
-                total_games INTEGER NOT NULL DEFAULT 0
+                total_games INTEGER NOT NULL DEFAULT 0,
+                format TEXT NOT NULL DEFAULT '[]',
+                archetype TEXT NOT NULL DEFAULT '[]',
+                colors TEXT NOT NULL DEFAULT '[]',
+                tags TEXT NOT NULL DEFAULT '[]'
             )
         """
         )
@@ -441,14 +683,31 @@ class SQLiteDataStore:
         # Serialize lists to JSON
         main_deck_json = json.dumps(deck.main_deck)
         sideboard_json = json.dumps(deck.sideboard)
+        format_json = json.dumps(deck.format)
+        archetype_json = json.dumps(deck.archetype)
+        colors_json = json.dumps(deck.colors)
+        tags_json = json.dumps(deck.tags)
 
         # Insert or replace deck
         cursor.execute(
             """
-            INSERT OR REPLACE INTO decks (deck_id, deck_name, main_deck, sideboard, total_games)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO decks (
+                deck_id, deck_name, main_deck, sideboard, total_games,
+                format, archetype, colors, tags
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-            (deck.deck_id, deck.deck_name, main_deck_json, sideboard_json, deck.total_games),
+            (
+                deck.deck_id,
+                deck.deck_name,
+                main_deck_json,
+                sideboard_json,
+                deck.total_games,
+                format_json,
+                archetype_json,
+                colors_json,
+                tags_json,
+            ),
         )
 
         conn.commit()
@@ -470,7 +729,8 @@ class SQLiteDataStore:
 
         cursor.execute(
             """
-            SELECT deck_id, deck_name, main_deck, sideboard, total_games
+            SELECT deck_id, deck_name, main_deck, sideboard, total_games,
+                   format, archetype, colors, tags
             FROM decks
             WHERE deck_id = ?
         """,
@@ -489,7 +749,60 @@ class SQLiteDataStore:
             main_deck=json.loads(row["main_deck"]),
             sideboard=json.loads(row["sideboard"]),
             total_games=row["total_games"],
+            format=json.loads(row["format"]),
+            archetype=json.loads(row["archetype"]),
+            colors=json.loads(row["colors"]),
+            tags=json.loads(row["tags"]),
         )
+
+    def update_deck(self, deck: DeckData) -> None:
+        """Update an existing deck's metadata.
+
+        Args:
+            deck: The deck data with updated metadata
+
+        Raises:
+            ValueError: If the deck doesn't exist
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        # Serialize lists to JSON
+        main_deck_json = json.dumps(deck.main_deck)
+        sideboard_json = json.dumps(deck.sideboard)
+        format_json = json.dumps(deck.format)
+        archetype_json = json.dumps(deck.archetype)
+        colors_json = json.dumps(deck.colors)
+        tags_json = json.dumps(deck.tags)
+
+        # Update deck
+        cursor.execute(
+            """
+            UPDATE decks
+            SET deck_name = ?, main_deck = ?, sideboard = ?, total_games = ?,
+                format = ?, archetype = ?, colors = ?, tags = ?
+            WHERE deck_id = ?
+        """,
+            (
+                deck.deck_name,
+                main_deck_json,
+                sideboard_json,
+                deck.total_games,
+                format_json,
+                archetype_json,
+                colors_json,
+                tags_json,
+                deck.deck_id,
+            ),
+        )
+
+        # Check if deck was found
+        if cursor.rowcount == 0:
+            conn.close()
+            raise ValueError(f"Deck not found: {deck.deck_id}")
+
+        conn.commit()
+        conn.close()
 
     def list_decks(self) -> List[str]:
         """List all available deck IDs.
@@ -568,6 +881,44 @@ class SQLiteDataStore:
             ORDER BY timestamp
         """,
             (deck_id,),
+        )
+
+        rows = cursor.fetchall()
+        conn.close()
+
+        decisions = []
+        for row in rows:
+            decisions.append(
+                HandDecisionData(
+                    deck_id=row["deck_id"],
+                    hand_signature=row["hand_signature"],
+                    hand_display=json.loads(row["hand_display"]),
+                    mulligan_count=row["mulligan_count"],
+                    decision=row["decision"],
+                    lands_in_hand=row["lands_in_hand"],
+                    on_play=bool(row["on_play"]),
+                    timestamp=datetime.fromisoformat(row["timestamp"]),
+                )
+            )
+
+        return decisions
+
+    def get_all_decisions(self) -> List[HandDecisionData]:
+        """Get all hand decisions across all decks.
+
+        Returns:
+            List of all hand decisions
+        """
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT deck_id, hand_signature, hand_display, mulligan_count,
+                   decision, lands_in_hand, on_play, timestamp
+            FROM hand_decisions
+            ORDER BY timestamp
+        """
         )
 
         rows = cursor.fetchall()
@@ -906,6 +1257,40 @@ class PostgreSQLDataStore:  # pylint: disable=too-many-instance-attributes
 
         return decisions
 
+    def get_all_decisions(self) -> List[HandDecisionData]:
+        """Get all hand decisions across all decks."""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT deck_id, hand_signature, hand_display, mulligan_count,
+                   decision, lands_in_hand, on_play, timestamp
+            FROM hand_decisions
+            ORDER BY timestamp
+        """
+        )
+
+        rows = cursor.fetchall()
+        conn.close()
+
+        decisions = []
+        for row in rows:
+            decisions.append(
+                HandDecisionData(
+                    deck_id=row[0],
+                    hand_signature=row[1],
+                    hand_display=json.loads(row[2]),
+                    mulligan_count=row[3],
+                    decision=row[4],
+                    lands_in_hand=row[5],
+                    on_play=row[6],
+                    timestamp=row[7],
+                )
+            )
+
+        return decisions
+
     def get_hand_statistics(self, hand_signature: str) -> Optional[HandStats]:
         """Get aggregated statistics for a specific hand composition."""
         conn = self._get_connection()
@@ -1206,6 +1591,40 @@ class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
 
         return decisions
 
+    def get_all_decisions(self) -> List[HandDecisionData]:
+        """Get all hand decisions across all decks."""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT deck_id, hand_signature, hand_display, mulligan_count,
+                   decision, lands_in_hand, on_play, timestamp
+            FROM hand_decisions
+            ORDER BY timestamp
+        """
+        )
+
+        rows = cursor.fetchall()
+        conn.close()
+
+        decisions = []
+        for row in rows:
+            decisions.append(
+                HandDecisionData(
+                    deck_id=row[0],
+                    hand_signature=row[1],
+                    hand_display=json.loads(row[2]),
+                    mulligan_count=row[3],
+                    decision=row[4],
+                    lands_in_hand=row[5],
+                    on_play=row[6],
+                    timestamp=row[7],
+                )
+            )
+
+        return decisions
+
     def get_hand_statistics(self, hand_signature: str) -> Optional[HandStats]:
         """Get aggregated statistics for a specific hand composition."""
         conn = self._get_connection()
@@ -1263,6 +1682,72 @@ class MariaDBDataStore:  # pylint: disable=too-many-instance-attributes
             all_stats.append(stats)
 
         return all_stats
+
+    def list_decks_filtered(
+        self,
+        mtg_format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
+    ) -> List[str]:
+        """List deck IDs filtered by format, archetype, colors, and/or tags.
+
+        Since metadata is stored as JSON arrays, we load all decks and filter in Python
+        for better compatibility across SQLite versions.
+        """
+        all_deck_ids = self.list_decks()
+        filtered_ids = []
+
+        for deck_id in all_deck_ids:
+            deck = self.load_deck(deck_id)
+            if not deck:
+                continue
+
+            # If no filters provided, include all decks
+            if mtg_format is None and archetype is None and colors is None and tags is None:
+                filtered_ids.append(deck_id)
+                continue
+
+            # Check format filter (value must be IN deck.format list)
+            if mtg_format is not None and mtg_format not in deck.format:
+                continue
+
+            # Check archetype filter (value must be IN deck.archetype list)
+            if archetype is not None and archetype not in deck.archetype:
+                continue
+
+            # Check colors filter (value must be IN deck.colors list)
+            if colors is not None and colors not in deck.colors:
+                continue
+
+            # Check tags filter (value must be IN deck.tags list)
+            if tags is not None and tags not in deck.tags:
+                continue
+
+            # Deck passed all filters
+            filtered_ids.append(deck_id)
+
+        return filtered_ids
+
+    def get_random_deck(
+        self,
+        mtg_format: Optional[str] = None,
+        archetype: Optional[str] = None,
+        colors: Optional[str] = None,
+        tags: Optional[str] = None,
+    ) -> Optional[DeckData]:
+        """Get a random deck, optionally filtered by format, archetype, colors, and/or tags."""
+        import random
+
+        matching_deck_ids = self.list_decks_filtered(
+            mtg_format=mtg_format, archetype=archetype, colors=colors, tags=tags
+        )
+
+        if not matching_deck_ids:
+            return None
+
+        random_deck_id = random.choice(matching_deck_ids)
+        return self.load_deck(random_deck_id)
 
 
 # AIA: Primarily AI, Human-initiated, Reviewed, Claude Code Web [Sonnet 4.5] v1.0

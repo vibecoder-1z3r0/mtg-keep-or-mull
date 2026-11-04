@@ -1,7 +1,7 @@
 """Pydantic data models for MTG Keep or Mull."""
 
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -25,6 +25,14 @@ class HandDecisionData(BaseModel):
     on_play: bool = Field(..., description="True if on the play, False if on the draw")
     timestamp: datetime = Field(default_factory=datetime.now, description="When decision was made")
     deck_id: str = Field(..., description="Identifier for the deck being practiced")
+    cards_bottomed: Optional[List[str]] = Field(
+        default=None,
+        description="Cards put on bottom when keeping after mulligan (London Mulligan rule)",
+    )
+    reason: Optional[str] = Field(
+        default=None,
+        description="Optional reason for the decision (e.g., 'Not enough lands', 'Good curve')",
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -39,12 +47,14 @@ class HandDecisionData(BaseModel):
                     "Island",
                     "Lórien Revealed",
                 ],
-                "mulligan_count": 0,
+                "mulligan_count": 1,
                 "decision": "keep",
                 "lands_in_hand": 2,
                 "on_play": True,
                 "timestamp": "2025-11-22T10:30:00",
                 "deck_id": "mono_u_terror",
+                "cards_bottomed": ["Lórien Revealed"],
+                "reason": "2 lands with cantrip, good enough at 6",
             }
         }
     )
@@ -63,6 +73,22 @@ class DeckData(BaseModel):
         default_factory=list, description="Sideboard card names (0-15 cards)"
     )
     total_games: int = Field(default=0, ge=0, description="Total games played with this deck")
+    format: List[str] = Field(
+        default_factory=list,
+        description="MTG formats (e.g., Pauper, Modern, Standard, Legacy, Commander)",
+    )
+    archetype: List[str] = Field(
+        default_factory=list,
+        description="Deck archetypes (e.g., Aggro, Control, Combo, Tempo, Midrange)",
+    )
+    colors: List[str] = Field(
+        default_factory=list,
+        description="Color identity (e.g., Grixis, U, B, R, Mono-Blue, UBR)",
+    )
+    tags: List[str] = Field(
+        default_factory=list,
+        description="Flexible tags for themes, strategies, and custom labels",
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -72,6 +98,10 @@ class DeckData(BaseModel):
                 "main_deck": ["Island", "Island", "Delver of Secrets", "Brainstorm"],
                 "sideboard": ["Hydroblast", "Annul"],
                 "total_games": 42,
+                "format": ["Pauper", "Modern", "Legacy", "Vintage"],
+                "archetype": ["Tempo", "Control"],
+                "colors": ["U", "Mono-Blue"],
+                "tags": ["Delver", "permission", "cantrips"],
             }
         }
     )
